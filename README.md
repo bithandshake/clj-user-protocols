@@ -163,11 +163,9 @@ function checks whether an email address is:
 
 This protocol function could return with the following HTTP responses:
 
-| Response body                                              | Response status |
-| ---------------------------------------------------------- | --------------- |
-| `:invalid-request/missing-user-agent`                      | `400`           |
-| No user agent is found in the request. Automatically checked by the actual protocol function.|
-| |
+| Response body                                              | Response status | A     | B    |
+| ---------------------------------------------------------- | --------------- | ----- | ---- |
+| `:invalid-request/missing-user-agent`                      | `400`           | No user agent is found in the request. | Automatically checked by the actual protocol function.
 | `:invalid-request/missing-ip-address`                      | `400`           |
 | `:illegal-client-behaviour/invalid-email-address-received` | `403`           |
 | `:too-many-requests/too-many-attempts-by-email-address`    | `429`           |
