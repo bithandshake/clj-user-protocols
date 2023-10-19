@@ -33,11 +33,11 @@ You can track the changes of the <strong>clj-user-protocols</strong> library [he
 
 - [In general](#in-general)
 
-- [How check an email address?](#how-to-check-an-email-address)
+- [The `check-email-address` protocol](#the-check-email-address-protocol)
 
-- [How check a phone number?](#how-to-check-a-phone-number)
+- [The `check-phone-number` protocol](#the-check-phone-number-protocol)
 
-- [How create a user account?](#how-to-create-a-user-account)
+- [The `create-user-account` protocol](#the-create-user-account-protocol)
 
 ### Abbreviations
 
@@ -97,7 +97,7 @@ If any security concern has been found, the return value could be something like
 The whole list of possible return values of the `check-email-address` function from
 this example could be found below.
 
-### How to check an email address?
+### The `check-email-address` protocol
 
 The [`user-protocols.api/check-email-address`](documentation/clj/user-protocols/API.md/#check-email-address)
 function checks whether an email address is:
@@ -106,7 +106,11 @@ function checks whether an email address is:
 - not verified (but registered)
 - verified     (and registered)
 
-This function could return with the following cases:
+This function could return with the following HTTP responses:
+
+| HTTP response body                    | HTTP response status | Checked by |
+| ------------------------------------- | -------------------- | ---------- |
+| `:invalid-request/missing-user-agent` | `400`                | Automatically checked by the `check-email-address-function`
 
 ###### HTTP status 400 (invalid request)
 
@@ -162,9 +166,8 @@ This function could return with the following cases:
     function as a boolean.
   - The client should recommend logging in to the user.
 
-> Protocol functions are only applying security logic, they are not doing any
-  environmental checking and not making any side effects! To use them, you have
-  to provide the working functions for them!
+In order to use the `check-email-address` protocol function, you have to provide
+the following working functions as parameters.
 
 ```
 (defn my-route
@@ -185,7 +188,7 @@ You could pass a custom security stage for the `check-email-address` function:
                                 ...}))
 ```
 
-### How to check a phone number?
+### The `check-phone-number` protocol
 
 The [`user-protocols.api/check-phone-number`](documentation/clj/user-protocols/API.md/#check-phone-number)
 function checks whether a phone number is:
@@ -194,7 +197,7 @@ function checks whether a phone number is:
 - not verified (but registered)
 - verified     (and registered)
 
-This function could return with the following cases:
+This function could return with the following HTTP responses:
 
 ###### HTTP status 400 (invalid request)
 
@@ -250,9 +253,8 @@ This function could return with the following cases:
     function as a boolean.
   - The client should recommend logging in to the user.
 
-> Protocol functions are only applying security logic, they are not doing any
-  environmental checking and not making any side effects! To use them, you have
-  to provide the working functions for them!
+In order to use the `check-phone-number` protocol function, you have to provide
+the following working functions as parameters.
 
 ```
 (defn my-route
@@ -273,12 +275,12 @@ You could pass a custom security stage for the `check-phone-number` function:
                                ...}))
 ```
 
-### How to create a user account?
+### The `create-user-account` protocol
 
 The [`user-protocols.api/create-user-account`](documentation/clj/user-protocols/API.md/#create-user-account)
 function creates a user account.
 
-This function could return with the following cases:
+This function could return with the following HTTP responses:
 
 ###### HTTP status 400 (invalid request)
 
@@ -350,9 +352,8 @@ This function could return with the following cases:
   - Checked by evaluating the return value of the given `create-user-account-f`
     function as a boolean.
 
-> Protocol functions are only applying security logic, they are not doing any
-  environmental checking and not making any side effects! To use them, you have
-  to provide the working functions for them!
+In order to use the `create-user-account` protocol function, you have to provide
+the following working functions as parameters.
 
 ```
 (defn my-route
