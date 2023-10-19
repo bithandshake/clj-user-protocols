@@ -180,7 +180,7 @@
   ;   :standard-activity/user-session-dropped,
   ;   :unknown-error/optional-check-stage-failed
   ;  :status (integer)
-  ;   200, 520}
+  ;   200}
   [_ {:keys [optional-check-f]}]
   (cond (and optional-check-f (not (optional-check-f))) {:body :unknown-error/optional-check-stage-failed :status 520}
         :dropping-user-session                          {:body :standard-activity/user-session-dropped    :status 200 :session {}}))

@@ -96,70 +96,27 @@ function applies the `check-email-address` protocol.
 
 This protocol function could return with the following HTTP responses:
 
-```
-{:invalid-request/missing-ip-address :status 400}
-```
-
-- <i>No IP address is found in the request.</i>
-- <i>Automatically checked by the actual protocol function.</i>
-
-```
-{:invalid-request/missing-user-agent :status 400}
-```
-
-- <i>No user agent is found in the request.</i>
-- <i>Automatically checked by the actual protocol function.</i>
-
-```
-{:illegal-client-behaviour/invalid-email-address-received :status 403}
-```
-
-- <i>Invalid email address has been received.</i>
-- <i>Checked by the `email-address-valid-f` function.</i>
-
-```
-{:too-many-requests/too-many-attempts-by-email-address :status 429}
-```
-
-- <i>Too many actions has been attempted in a specific timeframe.</i>
-- <i>Checked by the `too-many-attempts-by-email-address-f` function.</i>
-
-```
-{:too-many-requests/too-many-attempts-by-ip-address :status 429}
-```
-
-- <i>Too many actions has been attempted in a specific timeframe.</i>
-- <i>Checked by the `too-many-attempts-by-ip-address-f` function.</i>
-
-```
-{:unknown-error/optional-check-stage-failed :status 520}
-```
-
-- <i>The optional custom check function returned a false value.</i>
-- <i>Checked by the `optional-check-f` function.</i>
-
-```
-{:standard-activity/unregistered-email-address-received :status 200}
-```
-
-- <i>No user account has been found with the received email address.</i>
-- <i>Checked by the `email-address-registered-f` function.</i>
-
-```
-{:standard-activity/unverified-email-address-received :status 200}
-```
-
-- <i>A user account has been found with the received email address.</i>
-- <i>The email address has not been verified yet.</i>
-- <i>Checked by the `email-address-verified-f` function.</i>
-
-```
-{:standard-activity/verified-email-address-received :status 200}
-```
-
-- <i>A user account has been found with the received email address.</i>
-- <i>The email address has been verified.</i>
-- <i>Checked by the `email-address-verified-f` function.</i>
+| HTTP response | Description |
+| :--- | :--- |
+||
+||
+| `400`<br/>`:invalid-request/missing-ip-address` | <sub>No IP address is found in the request.<br/>Checked automatically by the actual protocol function.</sub> |
+||
+| `400`<br/>`:invalid-request/missing-user-agent` | <sub>No user agent is found in the request.<br/>Checked automatically by the actual protocol function.</sub> |
+||
+| `403`<br/>`:illegal-client-behaviour/invalid-email-address-received` | <sub>Invalid email address has been received.<br/>Checked by the `email-address-valid-f` function.</sub> |
+||
+| `429`<br/>`:too-many-requests/too-many-attempts-by-email-address` | <sub>Too many actions has been attempted in a specific timeframe.<br/>Checked by the `too-many-attempts-by-email-address-f` function.</sub> |
+||
+| `429`<br/>`:too-many-requests/too-many-attempts-by-ip-address` | <sub>Too many actions has been attempted in a specific timeframe.<br/>Checked by the `too-many-attempts-by-ip-address-f` function.</sub> |
+||
+| `520`<br/>`:unknown-error/optional-check-stage-failed` | <sub>The optional custom check function returned a false value.<br/>Checked by the `optional-check-f` function.</sub> |
+||
+| `200`<br/>`:standard-activity/unregistered-email-address-received` | <sub>No user account has been found with the received email address.<br/>Checked by the `email-address-registered-f` function.</sub> |
+||
+| `200`<br/>`:standard-activity/unverified-email-address-received` | <sub>A user account has been found with the received email address.<br/>The email address has not been verified yet.<br/>Checked by the `email-address-verified-f` function.</sub> |
+||
+| `200`<br/>`:standard-activity/verified-email-address-received` | <sub>A user account has been found with the received email address.<br/>The email address has been already verified.<br/>Checked by the `email-address-verified-f` function.</sub> |
 
 In order to use the `check-email-address` protocol function, you have to provide
 the following working functions as parameters.
@@ -184,6 +141,33 @@ The [`user-protocols.api/check-phone-number`](documentation/clj/user-protocols/A
 function applies the `check-phone-number` protocol.
 
 This protocol function could return with the following HTTP responses:
+
+<table><tr><td> HTTP response body </td><td> Status </td><td> Description </td></tr>
+<tr><td>
+
+```
+
+:too-many-requests/too-many-attempts-by-email-address       
+```
+
+</td><td>
+<sub> 429 </sub>
+</td><td>
+<sub> Too many actions has been attempted in a specific timeframe. <br/> Checked automatically by the actual protocol function.</sub>
+</td></tr><tr></tr><tr><td>
+
+```
+
+:too-many-requests/too-many-attempts-by-email-address
+```
+
+</td>
+<td>429</td>td
+<td>
+<sub> Too many actions has been attempted in a specific timeframe. <br/> Checked automatically by the actual protocol function.</sub>
+</td>
+</tr>
+</table>
 
 | Response body |     | Description |
 | ------------- | --- | ----------- |
