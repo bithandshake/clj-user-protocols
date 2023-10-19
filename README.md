@@ -50,19 +50,29 @@ You can track the changes of the <strong>clj-user-protocols</strong> library [he
 
 ### In general
 
-This library is a set of protocol functions that are only applying security logic,
-and they are not doing any environmental checking and not making any side effects!
-To use them, you have to provide the working functions for them!
+This library is a set of protocol functions that are containing composed security
+protocols for basic user account actions. These protocol functions are only applying
+security logic and they are not doing any environmental checking and not making any
+side effects! In order to use them, you have to provide the working functions for them
+as parameters!
 
 For example, if your server receives an email address from a client and you want
 to check that email address is whether connected to a user account registered in
-your system or whether it is already verified, you can use the `check-email-address`
-function that is taking the working functions as its parameters and using them to
-do the security checks that are recommended before checking the received email address
-and then will do the actual email address checking.
+your system or whether it is already verified by the user, you can use the
+`check-email-address` function that takes the working functions as its parameters
+and using them to do the security checks that are recommended before checking the
+received email address and then will do the actual email address checking.
+
+In the following example, the `my-route` function receives an email address as a
+request parameter, and the `check-email-address` function returns a HTTP response
+that contains information about whether the email address is registered and also
+verified or any security concern has been found around the request.
+
+In order to check the received email address, we will need a few working functions
+that are required to be passed to the `check-email-address` function as its parameters.
 
 ```
-(defn my-route-function
+(defn my-route
   [{{:keys [email-address]} :params :as request}])
   (check-email-address request {:email-address-registered-f         (fn [] "This function must return TRUE if the received email address is registered in your system.")
                                 :email-address-valid-f              (fn [] "This function must return TRUE if the received email address is valid.")
@@ -72,6 +82,20 @@ and then will do the actual email address checking.
                                 :too-many-attempts-by-ip-address    (fn [] "This function must return TRUE if your log service shows that the IP address of the client has
                                                                             been initiated the checking process too many times in a recent timeframe.")}))})
 ```
+
+If no security concern has been found, the `check-email-address` function could
+return a HTTP response that looks like any of the followings:
+
+`{:body :standard-activity/unregistered-email-address-received :status 200}`
+`{:body :standard-activity/unverified-email-address-received   :status 200}`
+`{:body :standard-activity/verified-email-address-received     :status 200}`
+
+If any security concern has been found, the return value could be something like this:
+
+`{:body :illegal-client-behaviour/invalid-email-address-received :status 403}`
+
+The whole list of possible return values of the `check-email-address` function from
+this example could be found below. 
 
 ### How to check an email address?
 
@@ -143,7 +167,7 @@ This function could return with the following cases:
   to provide the working functions for them!
 
 ```
-(defn my-route-function
+(defn my-route
   [request]
   (check-email-address request {:email-address-registered-f         (fn [] ...)
                                 :email-address-valid-f              (fn [] ...)
@@ -155,7 +179,7 @@ This function could return with the following cases:
 You could pass a custom security stage for the `check-email-address` function:
 
 ```
-(defn my-route-function
+(defn my-route
   [request]
   (check-email-address request {:optional-check-f (fn [] ...)
                                 ...}))
@@ -231,7 +255,7 @@ This function could return with the following cases:
   to provide the working functions for them!
 
 ```
-(defn my-route-function
+(defn my-route
   [request]
   (check-phone-number request {:phone-number-registered-f         (fn [] ...)
                                :phone-number-valid-f              (fn [] ...)
@@ -243,7 +267,7 @@ This function could return with the following cases:
 You could pass a custom security stage for the `check-phone-number` function:
 
 ```
-(defn my-route-function
+(defn my-route
   [request]
   (check-phone-number request {:optional-check-f (fn [] ...)
                                ...}))
@@ -331,7 +355,7 @@ This function could return with the following cases:
   to provide the working functions for them!
 
 ```
-(defn my-route-function
+(defn my-route
   [request]
   (create-user-account request {:create-user-account-f                (fn [] ...)
                                 :email-address-registered-f           (fn [] ...)
@@ -348,7 +372,7 @@ This function could return with the following cases:
 You could pass a custom security stage for the `create-user-account` function:
 
 ```
-(defn my-route-function
+(defn my-route
   [request]
   (create-user-account request {:optional-check-f (fn [] ...)
                                 ...}))
