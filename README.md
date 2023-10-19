@@ -71,41 +71,44 @@ This function could return with the following cases:
 
 - `{:body :illegal-client-behaviour/invalid-email-address-received :status 403}`
   - Invalid email address has been received (despite the client-side form validation).
-  - Checked by the given `email-address-valid-f` function (its output is negated).
+  - Checked by negating the return value of the given `email-address-valid-f` function.
 
 ###### HTTP status 429 (too many attempts by the client)
 
 - `{:body :too-many-requests/too-many-attempts-by-email-address :status 429}`
   - Email address checking has been attempted with the received email address at
     least X times in a specific timeframe.
-  - Checked by the given `too-many-attempts-by-email-address-f` function.
+  - Checked by evaluating the return value of the given `too-many-attempts-by-email-address-f`
+    function as a boolean.
 - `{:body :too-many-requests/too-many-attempts-by-ip-address :status 429}`
   - Email address checking has been attempted by the same IP address at least X times
     in a specific timeframe (an IP address could belong to a workplace with different
     client devices with a shared IP address).
-  - Checked by the given `too-many-attempts-by-ip-address-f` function.
+  - Checked by evaluating the return value of the given `too-many-attempts-by-ip-address-f`
+    function as a boolean.
 
 ###### HTTP status 520 (unknown error)
 - `{:body :unknown-error/optional-check-stage-failed :status 520}`
   - The given `optional-check-f` function has been returned a false value.
-  - Checked by the return value of the given `optional-check-f` function
-    (its output is evaluated as boolean).
+  - Checked by evaluating the return value of the given `optional-check-f` function
+    as a boolean.
 
 ###### HTTP status 200 (standard activity)
 
 - `{:body :standard-activity/unregistered-email-address-received :status 200}`
   - No user has been found with the received email address.
-  - Checked by the given `email-address-registered-f` function (its output is negated).
+  - Checked by negating the return value of the given `email-address-registered-f` function.
   - The client should recommend registration to the user.
 - `{:body :standard-activity/unverified-email-address-received :status 200}`
   - A user account has been found with the received email address.
   - The email address of the found user account is NOT verified.
-  - Checked by the given `email-address-verified-f` function (its output is negated).
+  - Checked by negating the return value of the given `email-address-verified-f` function.
   - The client should recommend email address verification to the user.
 - `{:body :standard-activity/verified-email-address-received :status 200}`
   - A user account has been found with the received email address.
   - The email address of the found user account is verified.
-  - Checked by the given `email-address-verified-f` function.
+  - Checked by evaluating the return value of the given `email-address-verified-f`
+    function as a boolean.
   - The client should recommend logging in to the user.
 
 > Protocol functions are only applying security logic, they are not doing any
@@ -156,41 +159,44 @@ This function could return with the following cases:
 
 - `{:body :illegal-client-behaviour/invalid-phone-number-received :status 403}`
   - Invalid phone number has been received (despite the client-side form validation).
-  - Checked by the given `phone-number-valid-f` function (its output is negated).
+  - Checked by negating the return value of the given `phone-number-valid-f` function.
 
 ###### HTTP status 429 (too many attempts by the client)
 
 - `{:body :too-many-requests/too-many-attempts-by-phone-number :status 429}`
   - Phone number checking has been attempted with the received phone number at
     least X times in a specific timeframe.
-  - Checked by the given `too-many-attempts-by-phone-number-f` function.
+  - Checked by evaluating the return value of the given `too-many-attempts-by-phone-number-f`
+    function as a boolean.
 - `{:body :too-many-requests/too-many-attempts-by-ip-address :status 429}`
   - Phone number checking has been attempted by the same IP address at least X times
     in a specific timeframe (an IP address could belong to a workplace with different
     client devices with a shared IP address).
-  - Checked by the given `too-many-attempts-by-ip-address-f` function.
+  - Checked by evaluating the return value of the given `too-many-attempts-by-ip-address-f`
+    function as a boolean.
 
 ###### HTTP status 520 (unknown error)
 - `{:body :unknown-error/optional-check-stage-failed :status 520}`
   - The given `optional-check-f` function has been returned a false value.
-  - Checked by the return value of the given `optional-check-f` function
-    (its output is evaluated as boolean).
+  - Checked by evaluating the return value of the given `optional-check-f` function
+    as a boolean.
 
 ###### HTTP status 200 (standard activity)
 
 - `{:body :standard-activity/unregistered-phone-number-received :status 200}`
   - No user has been found with the received phone number.
-  - Checked by the given `phone-number-registered-f` function (its output is negated).
+  - Checked by negating the return value of the given `phone-number-registered-f` function.
   - The client should recommend registration to the user.
 - `{:body :standard-activity/unverified-phone-number-received :status 200}`
   - A user account has been found with the received phone number.
   - The phone number of the found user account is NOT verified.
-  - Checked by the given `phone-number-verified-f` function (its output is negated).
+  - Checked by negating the return value of the given `phone-number-verified-f` function.
   - The client should recommend phone number verification to the user.
 - `{:body :standard-activity/verified-phone-number-received :status 200}`
   - A user account has been found with the received phone number.
   - The phone number of the found user account is verified.
-  - Checked by the given `phone-number-verified-f` function.
+  - Checked by evaluating the return value of the given `phone-number-verified-f`
+    function as a boolean.
   - The client should recommend logging in to the user.
 
 > Protocol functions are only applying security logic, they are not doing any
@@ -237,57 +243,61 @@ This function could return with the following cases:
 
 - `{:body :illegal-client-behaviour/invalid-email-address-received :status 403}`
   - Invalid email address has been received (despite the client-side form validation).
-  - Checked by the given `email-address-valid-f` function (its output is negated).
+  - Checked by negating the return value of the given `email-address-valid-f` function.
 - `{:body :illegal-client-behaviour/invalid-password-received :status 403}`
   - Invalid password has been received (despite the client-side form validation).
-  - Checked by the given `password-valid-f` function (its output is negated).
+  - Checked by negating the return value of the given `password-valid-f` function.
 - `{:body :illegal-client-behaviour/invalid-user-data-received :status 403}`
   - Invalid user data has been received (despite the client-side form validation).
-  - Checked by the given `user-data-valid-f` function (its output is negated).
+  - Checked by negating the return value of the given `user-data-valid-f` function.
 - `{:body :illegal-client-behaviour/user-already-logged-in :status 403}`
   - The client has a valid authenticated user session and trying to create a new
     user account (registration form must be only available for unauthenticated visitors).
-  - Checked by the given `user-logged-in-f` function.
+  - Checked by evaluating the return value of the given `user-logged-in-f` function
+    as a boolean.
 - `{:body :illegal-client-behaviour/email-address-already-registered :status 403}`
   - The received email address has been already connected to another user account
     (registration form must check the availability of the email address).
-  - Checked by the given `email-address-registered-f` function.
+  - Checked by evaluating the return value of the given `email-address-registered-f`
+    function as a boolean.
 
 ###### HTTP status 429 (too many attempts by the client)
 
 - `{:body :too-many-requests/too-many-attempts-by-email-address :status 429}`
   - User account creating has been attempted with the received email address at
     least X times in a specific timeframe.
-  - Checked by the given `too-many-attempts-by-email-address-f` function.
+  - Checked by evaluating the return value of the given `too-many-attempts-by-email-address-f`
+    function as a boolean.
 - `{:body :too-many-requests/too-many-attempts-by-ip-address :status 429}`
   - User account creating has been attempted by the same IP address at least X times
     in a specific timeframe (an IP address could belong to a workplace with different
     client devices with a shared IP address).
-  - Checked by the given `too-many-attempts-by-ip-address-f` function.
+  - Checked by evaluating the return value of the given `too-many-attempts-by-ip-address-f`
+    function as a boolean.
 
 ###### HTTP status 500 (server error)
 - `{:body :server-error/unable-to-create-user-account :status 500}`
   - User account creating has been failured.
-  - Checked by the return value of the given `create-user-account-f` function
-    (its output is evaluated as boolean).
+  - Checked by evaluating the return value of the given `create-user-account-f`
+    function as a boolean.
 
 ###### HTTP status 520 (unknown error)
 - `{:body :unknown-error/optional-check-stage-failed :status 520}`
   - The given `optional-check-f` function has been returned a false value.
-  - Checked by the return value of the given `optional-check-f` function
-    (its output is evaluated as boolean).
+  - Checked by evaluating the return value of the given `optional-check-f` function
+    as a boolean.
 
 ###### HTTP status 200 (standard activity)
 
 - `{:body :standard-activity/unable-to-send-welcome-email :status 200}`
   - Unable to send welcome email.
-  - Checked by the return value of the given `send-welcome-email-f` function (its
-    output is evaluated as boolean).
+  - Checked by evaluating the return value of the given `send-welcome-email-f` 
+    function as a boolean.
   - The client should warn the user about checking for typos.
 - `{:body :standard-activity/user-account-created :status 200}`
   - The user account has been successfully created.
-  - Checked by the return value of the given `create-user-account-f` function (its
-    output is evaluated as boolean).
+  - Checked by evaluating the return value of the given `create-user-account-f`
+    function as a boolean.
 
 > Protocol functions are only applying security logic, they are not doing any
   environmental checking and not making any side effects! To use them, you have
