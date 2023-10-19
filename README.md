@@ -185,11 +185,11 @@ function applies the `check-phone-number` protocol.
 
 This protocol function could return with the following HTTP responses:
 
-| Response body |     | Description | Checked by |
-| ------------- | --- | --- | --- |
-| <sub>`:invalid-request/missing-ip-address`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> | <sub>By the actual protocol function.</sub> |
-| <sub>`:invalid-request/missing-user-agent`</sub> | <sub>`400`</sub> | <sub>No user agent is found in the request.</sub> | <sub>By the actual protocol function.</sub> |
-| <sub>`:illegal-client-behaviour/invalid-phone-number-received`</sub> | <sub>`403`</sub> | <sub>Invalid phone number has been received.</sub> | <sub>`phone-number-valid-f`</sub> |
+| Response body |     | Description |
+| ------------- | --- | --- |
+| <sub>`:invalid-request/missing-ip-address`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> |
+| <sub>`:invalid-request/missing-user-agent`</sub> | <sub>`400`</sub> | <sub>No user agent is found in the request.</sub> |
+| <sub>`:illegal-client-behaviour/invalid-phone-number-received`</sub> | <sub>`403`</sub> | <sub>Invalid phone number has been received.</sub> |
 | <sub>`:too-many-requests/too-many-attempts-by-phone-number`</sub>    | <sub>`429`</sub> | <sub>Too many actions has been attempted in a specific timeframe.</sub> |
 | <sub>`:invalid-request/missing-ip-address`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> |
 | <sub>`:invalid-request/missing-user-agent`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> |
