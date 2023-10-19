@@ -185,9 +185,9 @@ function applies the `check-phone-number` protocol.
 
 This protocol function could return with the following HTTP responses:
 
-| Response body | HTTP status |     |     |
-| ------------- | ----------- | --- | --- |
-| <sub>`:invalid-request/missing-ip-address`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> |
+| Response body |     | Description | Checked by |
+| ------------- | --- | --- | --- |
+| <sub>`:invalid-request/missing-ip-address`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> | <sub>By the actual protocol function.</sub> |
 | <sub>`:invalid-request/missing-user-agent`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> |
 | <sub>`:invalid-request/missing-ip-address`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> | <sub>`too-many-attempts-by-email-address-f`</sub> |
 | <sub>`:invalid-request/missing-user-agent`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> |
