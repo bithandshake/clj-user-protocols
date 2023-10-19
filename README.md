@@ -51,10 +51,10 @@ You can track the changes of the <strong>clj-user-protocols</strong> library [he
 ### In general
 
 This library is a set of protocol functions that are containing composed security
-protocols for basic user account actions. These protocol functions are only applying
-security logic and they are not doing any environmental checking and not making any
-side effects! In order to use them, you have to provide the working functions for them
-as parameters!
+checks for the most common user account actions. These protocol functions are only
+applying the security checks by using working functions that are provided as parameters,
+and they are not doing any environmental checking and not making any side effects
+on their own!
 
 For example, if your server receives an email address from a client and you want
 to check that email address is whether connected to a user account registered in
@@ -95,7 +95,7 @@ If any security concern has been found, the return value could be something like
 `{:body :illegal-client-behaviour/invalid-email-address-received :status 403}`
 
 The whole list of possible return values of the `check-email-address` function from
-this example could be found below. 
+this example could be found below.
 
 ### How to check an email address?
 
