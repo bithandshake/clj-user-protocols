@@ -78,7 +78,7 @@ that are required to be passed to the `check-email-address` function as its para
                                 :email-address-valid-f              (fn [] "This function must return TRUE if the received email address is valid.")
                                 :email-address-verified-f           (fn [] "This function must return TRUE if the received email address is verified by the user.")
                                 :too-many-attempts-by-email-address (fn [] "This function must return TRUE if your log service shows that the received email address has
-                                                                            been used up for too many attempts to do the checking.")
+                                                                            been used up for too many attempts to do the checking in a recent timeframe.")
                                 :too-many-attempts-by-ip-address    (fn [] "This function must return TRUE if your log service shows that the IP address of the client has
                                                                             been initiated the checking process too many times in a recent timeframe.")}))})
 ```
@@ -86,9 +86,9 @@ that are required to be passed to the `check-email-address` function as its para
 If no security concern has been found, the `check-email-address` function could
 return a HTTP response that looks like any of the followings:
 
-`{:body :standard-activity/unregistered-email-address-received :status 200}`
-`{:body :standard-activity/unverified-email-address-received   :status 200}`
-`{:body :standard-activity/verified-email-address-received     :status 200}`
+- `{:body :standard-activity/unregistered-email-address-received :status 200}`
+- `{:body :standard-activity/unverified-email-address-received   :status 200}`
+- `{:body :standard-activity/verified-email-address-received     :status 200}`
 
 If any security concern has been found, the return value could be something like this:
 
