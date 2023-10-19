@@ -186,59 +186,16 @@ function applies the `check-phone-number` protocol.
 This protocol function could return with the following HTTP responses:
 
 | Response body |     | Description |
-| ------------- | --- | --- |
-| <sub>`:invalid-request/missing-ip-address`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> |
-| <sub>`:invalid-request/missing-user-agent`</sub> | <sub>`400`</sub> | <sub>No user agent is found in the request.</sub> |
-| <sub>`:illegal-client-behaviour/invalid-phone-number-received`</sub> | <sub>`403`</sub> | <sub>Invalid phone number has been received.</sub> |
-| <sub>`:too-many-requests/too-many-attempts-by-phone-number`</sub>    | <sub>`429`</sub> | <sub>Too many actions has been attempted in a specific timeframe.</sub> |
-| <sub>`:invalid-request/missing-ip-address`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> |
-| <sub>`:invalid-request/missing-user-agent`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> |
-| <sub>`:invalid-request/missing-ip-address`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> |
-| <sub>`:invalid-request/missing-user-agent`</sub> | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub> |
-
-
-{:too-many-requests/too-many-attempts-by-phone-number :status 429}
-
-
-- <i>Too many actions has been attempted in a specific timeframe.</i>
-- <i>Checked by the `too-many-attempts-by-phone-number-f` function.</i>
-
-```
-{:too-many-requests/too-many-attempts-by-ip-address :status 429}
-```
-
-- <i>Too many actions has been attempted in a specific timeframe.</i>
-- <i>Checked by the `too-many-attempts-by-ip-address-f` function.</i>
-
-```
-{:unknown-error/optional-check-stage-failed :status 520}
-```
-
-- <i>The optional custom check function returned a false value.</i>
-- <i>Checked by the `optional-check-f` function.</i>
-
-```
-{:standard-activity/unregistered-phone-number-received :status 200}
-```
-
-- <i>No user account has been found with the received phone number.</i>
-- <i>Checked by the `phone-number-registered-f` function.</i>
-
-```
-{:standard-activity/unverified-phone-number-received :status 200}
-```
-
-- <i>A user account has been found with the received phone number.</i>
-- <i>The phone number has not been verified yet.</i>
-- <i>Checked by the `phone-number-verified-f` function.</i>
-
-```
-{:standard-activity/verified-phone-number-received :status 200}
-```
-
-- <i>A user account has been found with the received phone number.</i>
-- <i>The phone number has been verified.</i>
-- <i>Checked by the `phone-number-verified-f` function.</i>
+| ------------- | --- | ----------- |
+| <sub>`:invalid-request/missing-ip-address`</sub>                     | <sub>`400`</sub> | <sub>No IP address is found in the request.</sub>                                     |
+| <sub>`:invalid-request/missing-user-agent`</sub>                     | <sub>`400`</sub> | <sub>No user agent is found in the request.</sub>                                     |
+| <sub>`:illegal-client-behaviour/invalid-phone-number-received`</sub> | <sub>`403`</sub> | <sub>Invalid phone number has been received.</sub>                                    |
+| <sub>`:too-many-requests/too-many-attempts-by-phone-number`</sub>    | <sub>`429`</sub> | <sub>Too many actions has been attempted in a specific timeframe.</sub>               |
+| <sub>`:too-many-requests/too-many-attempts-by-ip-address`</sub>      | <sub>`429`</sub> | <sub>Too many actions has been attempted in a specific timeframe.</sub>               |
+| <sub>`:unknown-error/optional-check-stage-failed`</sub>              | <sub>`520`</sub> | <sub>The optional custom check function returned a false value.</sub>                 |
+| <sub>`:standard-activity/unregistered-phone-number-received`</sub>   | <sub>`200`</sub> | <sub>No user account has been found with the received phone number.</sub>             |
+| <sub>`:standard-activity/unverified-phone-number-received`</sub>     | <sub>`200`</sub> | <sub>A user account has been found with the received phone number (unverified).</sub> |
+| <sub>`:standard-activity/verified-phone-number-received`</sub>       | <sub>`200`</sub> | <sub>A user account has been found with the received phone number (verified).</sub>   |
 
 In order to use the `check-phone-number` protocol function, you have to provide
 the following working functions as parameters.
