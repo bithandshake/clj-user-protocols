@@ -185,30 +185,25 @@ function applies the `check-phone-number` protocol.
 
 This protocol function could return with the following HTTP responses:
 
-```
-{:invalid-request/missing-ip-address :status 400}
-```
 
-- <i>No IP address is found in the request.</i>
-- <i>Automatically checked by the actual protocol function.</i>
+- `{:invalid-request/missing-ip-address :status 400}`
 
-```
-{:invalid-request/missing-user-agent :status 400}
-```
+   <i>No IP address is found in the request.</i>
 
-- <i>No user agent is found in the request.</i>
-- <i>Automatically checked by the actual protocol function.</i>
+   <i>Automatically checked by the actual protocol function.</i>    
 
-```
-{:illegal-client-behaviour/invalid-phone-number-received :status 403}
-```
+- `{:invalid-request/missing-user-agent :status 400}`
 
-- <i>Invalid phone number has been received.</i>
-- <i>Checked by the `phone-number-valid-f` function.</i>
+  <i>No user agent is found in the request.</i>
+  <i>Automatically checked by the actual protocol function.</i>
 
-```
+- `{:illegal-client-behaviour/invalid-phone-number-received :status 403}`
+
+  <i>Invalid phone number has been received.</i>
+  <i>Checked by the `phone-number-valid-f` function.</i>
+
 {:too-many-requests/too-many-attempts-by-phone-number :status 429}
-```
+
 
 - <i>Too many actions has been attempted in a specific timeframe.</i>
 - <i>Checked by the `too-many-attempts-by-phone-number-f` function.</i>
