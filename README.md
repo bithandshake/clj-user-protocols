@@ -31,6 +31,8 @@ You can track the changes of the <strong>clj-user-protocols</strong> library [he
 
 - [Abbreviations](#abbreviations)
 
+- [In general](#in-general)
+
 - [How check an email address?](#how-to-check-an-email-address)
 
 - [How check a phone number?](#how-to-check-a-phone-number)
@@ -45,6 +47,31 @@ You can track the changes of the <strong>clj-user-protocols</strong> library [he
 - `PNNP pair`: Phone number and password pair, for phone number based login method.
 - `PNS code`:  Phone number security code, for user actions that require multi-factor authentication.
 - `PNV code`:  Phone number verification code, for user phone number verification.
+
+### In general
+
+This library is a set of protocol functions that are only applying security logic,
+and they are not doing any environmental checking and not making any side effects!
+To use them, you have to provide the working functions for them!
+
+For example, if your server receives an email address from a client and you want
+to check that email address is whether connected to a user account registered in
+your system or whether it is already verified, you can use the `check-email-address`
+function that is taking the working functions as its parameters and using them to
+do the security checks that are recommended before checking the received email address
+and then will do the actual email address checking.
+
+```
+(defn my-route-function
+  [{{:keys [email-address]} :params :as request}])
+  (check-email-address request {:email-address-registered-f         (fn [] "This function must return TRUE if the received email address is registered in your system.")
+                                :email-address-valid-f              (fn [] "This function must return TRUE if the received email address is valid.")
+                                :email-address-verified-f           (fn [] "This function must return TRUE if the received email address is verified by the user.")
+                                :too-many-attempts-by-email-address (fn [] "This function must return TRUE if your log service shows that the received email address has
+                                                                            been used up for too many attempts to do the checking.")
+                                :too-many-attempts-by-ip-address    (fn [] "This function must return TRUE if your log service shows that the IP address of the client has
+                                                                            been initiated the checking process too many times in a recent timeframe.")}))})
+```
 
 ### How to check an email address?
 
@@ -116,7 +143,7 @@ This function could return with the following cases:
   to provide the working functions for them!
 
 ```
-(defn my-check-email-address
+(defn my-route-function
   [request]
   (check-email-address request {:email-address-registered-f         (fn [] ...)
                                 :email-address-valid-f              (fn [] ...)
@@ -128,7 +155,7 @@ This function could return with the following cases:
 You could pass a custom security stage for the `check-email-address` function:
 
 ```
-(defn my-check-email-address
+(defn my-route-function
   [request]
   (check-email-address request {:optional-check-f (fn [] ...)
                                 ...}))
@@ -204,9 +231,9 @@ This function could return with the following cases:
   to provide the working functions for them!
 
 ```
-(defn my-check-phone-number
+(defn my-route-function
   [request]
-  (check-phone-number request {:phone-number-registered-f        (fn [] ...)
+  (check-phone-number request {:phone-number-registered-f         (fn [] ...)
                                :phone-number-valid-f              (fn [] ...)
                                :phone-number-verified-f           (fn [] ...)
                                :too-many-attempts-by-phone-number (fn [] ...)
@@ -216,7 +243,7 @@ This function could return with the following cases:
 You could pass a custom security stage for the `check-phone-number` function:
 
 ```
-(defn my-check-phone-number
+(defn my-route-function
   [request]
   (check-phone-number request {:optional-check-f (fn [] ...)
                                ...}))
@@ -291,7 +318,7 @@ This function could return with the following cases:
 
 - `{:body :standard-activity/unable-to-send-welcome-email :status 200}`
   - Unable to send welcome email.
-  - Checked by evaluating the return value of the given `send-welcome-email-f` 
+  - Checked by evaluating the return value of the given `send-welcome-email-f`
     function as a boolean.
   - The client should warn the user about checking for typos.
 - `{:body :standard-activity/user-account-created :status 200}`
@@ -304,7 +331,7 @@ This function could return with the following cases:
   to provide the working functions for them!
 
 ```
-(defn my-create-user-account
+(defn my-route-function
   [request]
   (create-user-account request {:create-user-account-f                (fn [] ...)
                                 :email-address-registered-f           (fn [] ...)
@@ -321,7 +348,7 @@ This function could return with the following cases:
 You could pass a custom security stage for the `create-user-account` function:
 
 ```
-(defn my-create-user-account
+(defn my-route-function
   [request]
   (create-user-account request {:optional-check-f (fn [] ...)
                                 ...}))
