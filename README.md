@@ -33,6 +33,8 @@ You can track the changes of the <strong>clj-user-protocols</strong> library [he
 
 - [In general](#in-general)
 
+- [Possible HTTP responses](#possible-http-responses)
+
 - [The `check-email-address` protocol](#the-check-email-address-protocol)
 
 - [The `check-phone-number` protocol](#the-check-phone-number-protocol)
@@ -97,30 +99,16 @@ If any security concern has been found, the return value could be something like
 The whole list of possible return values of the `check-email-address` function from
 this example could be found below.
 
-### The `check-email-address` protocol
-
-The [`user-protocols.api/check-email-address`](documentation/clj/user-protocols/API.md/#check-email-address)
-function checks whether an email address is:
-
-- unknown      (not registered)
-- not verified (but registered)
-- verified     (and registered)
-
-This function could return with the following HTTP responses:
-
-| HTTP response body                    | HTTP response status | Checked by |
-| ------------------------------------- | -------------------- | ---------- |
-| `:invalid-request/missing-user-agent` | `400`                | Automatically checked by the `check-email-address-function`
+### Possible HTTP responses
 
 ###### HTTP status 400 (invalid request)
 
-- `{:body :invalid-request/missing-user-agent :status 400}`
-  - No user agent is found in the request.
-  - Automatically checked by the `check-email-address` function.
-
 - `{:body :invalid-request/missing-ip-address :status 400}`
   - No IP address is found in the request.
-  - Automatically checked by the `check-email-address` function.
+  - Automatically checked by the actual protocol function.
+- `{:body :invalid-request/missing-user-agent :status 400}`
+  - No user agent is found in the request.
+  - Automatically checked by the actual protocol function.
 
 ###### HTTP status 403 (illegal client behaviour)
 
@@ -131,14 +119,12 @@ This function could return with the following HTTP responses:
 ###### HTTP status 429 (too many attempts by the client)
 
 - `{:body :too-many-requests/too-many-attempts-by-email-address :status 429}`
-  - Email address checking has been attempted with the received email address at
-    least X times in a specific timeframe.
+  - Too many actions has been attempted with the received email address in a specific timeframe.
   - Checked by evaluating the return value of the given `too-many-attempts-by-email-address-f`
     function as a boolean.
 - `{:body :too-many-requests/too-many-attempts-by-ip-address :status 429}`
-  - Email address checking has been attempted by the same IP address at least X times
-    in a specific timeframe (an IP address could belong to a workplace with different
-    client devices with a shared IP address).
+  - Too many actions has been attempted by the same IP address in a specific timeframe
+    (an IP address could belong to a workplace with different client devices with a shared IP address).
   - Checked by evaluating the return value of the given `too-many-attempts-by-ip-address-f`
     function as a boolean.
 
@@ -165,6 +151,29 @@ This function could return with the following HTTP responses:
   - Checked by evaluating the return value of the given `email-address-verified-f`
     function as a boolean.
   - The client should recommend logging in to the user.
+
+### The `check-email-address` protocol
+
+The [`user-protocols.api/check-email-address`](documentation/clj/user-protocols/API.md/#check-email-address)
+function checks whether an email address is:
+
+- unknown      (not registered)
+- not verified (but registered)
+- verified     (and registered)
+
+This function could return with the following HTTP responses:
+
+| Response body                                              | Response status |
+| ---------------------------------------------------------- | --------------- |
+| `:invalid-request/missing-user-agent`                      | `400`           |
+| `:invalid-request/missing-ip-address`                      | `400`           |
+| `:illegal-client-behaviour/invalid-email-address-received` | `403`           |
+| `:too-many-requests/too-many-attempts-by-email-address`    | `429`           |
+| `:too-many-requests/too-many-attempts-by-ip-address`       | `429`           |
+| `:unknown-error/optional-check-stage-failed`               | `520`           |
+| `:standard-activity/unregistered-email-address-received`   | `200`           |
+| `:standard-activity/unverified-email-address-received`     | `200`           |
+| `:standard-activity/verified-email-address-received`       | `200`           |
 
 In order to use the `check-email-address` protocol function, you have to provide
 the following working functions as parameters.
