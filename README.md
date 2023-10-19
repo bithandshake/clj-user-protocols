@@ -130,15 +130,15 @@ This protocol function could return with the following HTTP responses:
 
 | HTTP response | Description |
 | ------------- | ----------- |
-| `:invalid-request/missing-user-agent`                      `400` | No user agent is found in the request. Checked by the actual protocol function.          |
-| `:invalid-request/missing-ip-address`                      `400` | No IP address is found in the request. Checked by the actual protocol function.          |
-| `:illegal-client-behaviour/invalid-email-address-received` `403` | Invalid email address has been received. Checked by the `email-address-valid-f` (*neg)         |
-| `:too-many-requests/too-many-attempts-by-email-address`    `429` | Too many actions has been attempted in a specific timeframe. Checked by the `too-many-attempts-by-email-address-f` |
-| `:too-many-requests/too-many-attempts-by-ip-address`       `429` | Too many actions has been attempted in a specific timeframe. Checked by the `too-many-attempts-by-ip-address-f`    |
-| `:unknown-error/optional-check-stage-failed`               `520` | The custom check function returned a false value.            Checked by the `optional-check-f` (*neg) |
-| `:standard-activity/unregistered-email-address-received`   `200` | No user has been found with the received email address.      Checked by the `email-address-registered-f`    |
-| `:standard-activity/unverified-email-address-received`     `200` | An unverified user account has been found with the received email address. Checked by the `email-address-verified-f` (*neg) |
-| `:standard-activity/verified-email-address-received`       `200` | A verified user account has been found with the received email address.    Checked by the `email-address-verified-f` |
+| `:invalid-request/missing-user-agent`                      `400` | No user agent is found in the request.                                     |
+| `:invalid-request/missing-ip-address`                      `400` | No IP address is found in the request.                                     |
+| `:illegal-client-behaviour/invalid-email-address-received` `403` | Invalid email address has been received.                                   |
+| `:too-many-requests/too-many-attempts-by-email-address`    `429` | Too many actions has been attempted in a specific timeframe.               |
+| `:too-many-requests/too-many-attempts-by-ip-address`       `429` | Too many actions has been attempted in a specific timeframe.               |
+| `:unknown-error/optional-check-stage-failed`               `520` | The custom check function returned a false value.                          |
+| `:standard-activity/unregistered-email-address-received`   `200` | No user has been found with the received email address.                    |
+| `:standard-activity/unverified-email-address-received`     `200` | An unverified user account has been found with the received email address. |
+| `:standard-activity/verified-email-address-received`       `200` | A verified user account has been found with the received email address.    |
 
 In order to use the `check-email-address` protocol function, you have to provide
 the following working functions as parameters.
