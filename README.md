@@ -73,17 +73,7 @@ verified or any security concern has been found around the request.
 In order to check the received email address, we will need a few working functions
 that are required to be passed to the `check-email-address` function as its parameters.
 
-```
-(defn my-route
-  [{{:keys [email-address]} :params :as request}])
-  (check-email-address request {:email-address-registered-f         (fn [] "This function must return TRUE if the received email address is registered in your system.")
-                                :email-address-valid-f              (fn [] "This function must return TRUE if the received email address is valid.")
-                                :email-address-verified-f           (fn [] "This function must return TRUE if the received email address is verified by the user.")
-                                :too-many-attempts-by-email-address (fn [] "This function must return TRUE if your log service shows that the received email address has
-                                                                            been used up for too many attempts to do the checking in a recent timeframe.")
-                                :too-many-attempts-by-ip-address    (fn [] "This function must return TRUE if your log service shows that the IP address of the client has
-                                                                            been initiated the checking process too many times in a recent timeframe.")}))})
-```
+
 
 If no security concern has been found, the `check-email-address` function could
 return a HTTP response that looks like any of the followings:
@@ -99,24 +89,6 @@ If any security concern has been found, the return value could be something like
 The whole list of possible return values of the `check-email-address` function from
 this example could be found below.
 
-###### HTTP status 200 (standard activity)
-
-- `{:body :standard-activity/unregistered-email-address-received :status 200}`
-  - No user has been found with the received email address.
-  - Checked by negating the return value of the given `email-address-registered-f` function.
-  - The client should recommend registration to the user.
-- `{:body :standard-activity/unverified-email-address-received :status 200}`
-  - A user account has been found with the received email address.
-  - The email address of the found user account is NOT verified.
-  - Checked by negating the return value of the given `email-address-verified-f` function.
-  - The client should recommend email address verification to the user.
-- `{:body :standard-activity/verified-email-address-received :status 200}`
-  - A user account has been found with the received email address.
-  - The email address of the found user account is verified.
-  - Checked by evaluating the return value of the given `email-address-verified-f`
-    function as a boolean.
-  - The client should recommend logging in to the user.
-
 ### The `check-email-address` protocol
 
 The [`user-protocols.api/check-email-address`](documentation/clj/user-protocols/API.md/#check-email-address)
@@ -126,11 +98,10 @@ This protocol function could return with the following HTTP responses:
 
 ```
 {:invalid-request/missing-ip-address :status 400}
-
-; No IP address is found in the request.
-; Automatically checked by the actual protocol function.
-
 ```
+
+- <i>No IP address is found in the request.</i>
+- <i>Automatically checked by the actual protocol function.</i>
 
 ```
 {:invalid-request/missing-user-agent :status 400}
@@ -139,38 +110,52 @@ This protocol function could return with the following HTTP responses:
 - <i>No user agent is found in the request.</i>
 - <i>Automatically checked by the actual protocol function.</i>
 
-`{:illegal-client-behaviour/invalid-email-address-received :status 403}`
+```
+{:illegal-client-behaviour/invalid-email-address-received :status 403}
+```
 
 - <i>Invalid email address has been received.</i>
 - <i>Checked by the `email-address-valid-f` function.</i>
 
-`{:too-many-requests/too-many-attempts-by-email-address :status 429}`
+```
+{:too-many-requests/too-many-attempts-by-email-address :status 429}
+```
 
 - <i>Too many actions has been attempted in a specific timeframe.</i>
 - <i>Checked by the `too-many-attempts-by-email-address-f` function.</i>
 
-`{:too-many-requests/too-many-attempts-by-ip-address :status 429}`
+```
+{:too-many-requests/too-many-attempts-by-ip-address :status 429}
+```
 
 - <i>Too many actions has been attempted in a specific timeframe.</i>
 - <i>Checked by the `too-many-attempts-by-ip-address-f` function.</i>
 
-`{:unknown-error/optional-check-stage-failed :status 520}`
+```
+{:unknown-error/optional-check-stage-failed :status 520}
+```
 
 - <i>The optional custom check function returned a false value.</i>
 - <i>Checked by the `optional-check-f` function.</i>
 
-`{:standard-activity/unregistered-email-address-received :status 200}`
+```
+{:standard-activity/unregistered-email-address-received :status 200}
+```
 
-- <i>No user has been found with the received email address.</i>
+- <i>No user account has been found with the received email address.</i>
 - <i>Checked by the `email-address-registered-f` function.</i>
 
-`{:standard-activity/unverified-email-address-received :status 200}`
+```
+{:standard-activity/unverified-email-address-received :status 200}
+```
 
 - <i>A user account has been found with the received email address.</i>
 - <i>The email address has not been verified yet.</i>
 - <i>Checked by the `email-address-verified-f` function.</i>
 
-`{:standard-activity/verified-email-address-received :status 200}`
+```
+{:standard-activity/verified-email-address-received :status 200}
+```
 
 - <i>A user account has been found with the received email address.</i>
 - <i>The email address has been verified.</i>
@@ -181,108 +166,105 @@ the following working functions as parameters.
 
 ```
 (defn my-route
-  [request]
-  (check-email-address request {:email-address-registered-f         (fn [] ...)
-                                :email-address-valid-f              (fn [] ...)
-                                :email-address-verified-f           (fn [] ...)
-                                :too-many-attempts-by-email-address (fn [] ...)
-                                :too-many-attempts-by-ip-address    (fn [] ...)}))
-```
-
-You could pass a custom security stage for the `check-email-address` function:
-
-```
-(defn my-route
-  [request]
-  (check-email-address request {:optional-check-f (fn [] ...)
-                                ...}))
+  [{{:keys [email-address]} :params :as request}]
+  (check-email-address request {:email-address-registered-f         (fn [] "This function must return TRUE if the received email address is registered in your system.")
+                                :email-address-valid-f              (fn [] "This function must return TRUE if the received email address is valid.")
+                                :email-address-verified-f           (fn [] "This function must return TRUE if the received email address is verified by the user.")
+                                :too-many-attempts-by-email-address (fn [] "This function must return TRUE if your log service shows that the received email address has
+                                                                            been used up for too many attempts to do the checking in a recent timeframe.")
+                                :too-many-attempts-by-ip-address    (fn [] "This function must return TRUE if your log service shows that the IP address of the client has
+                                                                            been initiated the checking process too many times in a recent timeframe.")
+                                :optional-check-f                   (fn [] "This function adds an optional custom stage of checking to the protocol. If returns false,
+                                                                            the protocol function returns an error response.")}))
 ```
 
 ### The `check-phone-number` protocol
 
 The [`user-protocols.api/check-phone-number`](documentation/clj/user-protocols/API.md/#check-phone-number)
-function checks whether a phone number is:
-
-- unknown      (not registered)
-- not verified (but registered)
-- verified     (and registered)
+function applies the `check-phone-number` protocol.
 
 This protocol function could return with the following HTTP responses:
 
-###### HTTP status 400 (invalid request)
+```
+{:invalid-request/missing-ip-address :status 400}
+```
 
-- `{:body :invalid-request/missing-user-agent :status 400}`
-  - No user agent is found in the request.
-  - Automatically checked by the `check-phone-number` function.
+- <i>No IP address is found in the request.</i>
+- <i>Automatically checked by the actual protocol function.</i>
 
-- `{:body :invalid-request/missing-ip-address :status 400}`
-  - No IP address is found in the request.
-  - Automatically checked by the `check-phone-number` function.
+```
+{:invalid-request/missing-user-agent :status 400}
+```
 
-###### HTTP status 403 (illegal client behaviour)
+- <i>No user agent is found in the request.</i>
+- <i>Automatically checked by the actual protocol function.</i>
 
-- `{:body :illegal-client-behaviour/invalid-phone-number-received :status 403}`
-  - Invalid phone number has been received (despite the client-side form validation).
-  - Checked by negating the return value of the given `phone-number-valid-f` function.
+```
+{:illegal-client-behaviour/invalid-phone-number-received :status 403}
+```
 
-###### HTTP status 429 (too many attempts by the client)
+- <i>Invalid phone number has been received.</i>
+- <i>Checked by the `phone-number-valid-f` function.</i>
 
-- `{:body :too-many-requests/too-many-attempts-by-phone-number :status 429}`
-  - Phone number checking has been attempted with the received phone number at
-    least X times in a specific timeframe.
-  - Checked by evaluating the return value of the given `too-many-attempts-by-phone-number-f`
-    function as a boolean.
-- `{:body :too-many-requests/too-many-attempts-by-ip-address :status 429}`
-  - Phone number checking has been attempted by the same IP address at least X times
-    in a specific timeframe (an IP address could belong to a workplace with different
-    client devices with a shared IP address).
-  - Checked by evaluating the return value of the given `too-many-attempts-by-ip-address-f`
-    function as a boolean.
+```
+{:too-many-requests/too-many-attempts-by-phone-number :status 429}
+```
 
-###### HTTP status 520 (unknown error)
-- `{:body :unknown-error/optional-check-stage-failed :status 520}`
-  - The given `optional-check-f` function has been returned a false value.
-  - Checked by evaluating the return value of the given `optional-check-f` function
-    as a boolean.
+- <i>Too many actions has been attempted in a specific timeframe.</i>
+- <i>Checked by the `too-many-attempts-by-phone-number-f` function.</i>
 
-###### HTTP status 200 (standard activity)
+```
+{:too-many-requests/too-many-attempts-by-ip-address :status 429}
+```
 
-- `{:body :standard-activity/unregistered-phone-number-received :status 200}`
-  - No user has been found with the received phone number.
-  - Checked by negating the return value of the given `phone-number-registered-f` function.
-  - The client should recommend registration to the user.
-- `{:body :standard-activity/unverified-phone-number-received :status 200}`
-  - A user account has been found with the received phone number.
-  - The phone number of the found user account is NOT verified.
-  - Checked by negating the return value of the given `phone-number-verified-f` function.
-  - The client should recommend phone number verification to the user.
-- `{:body :standard-activity/verified-phone-number-received :status 200}`
-  - A user account has been found with the received phone number.
-  - The phone number of the found user account is verified.
-  - Checked by evaluating the return value of the given `phone-number-verified-f`
-    function as a boolean.
-  - The client should recommend logging in to the user.
+- <i>Too many actions has been attempted in a specific timeframe.</i>
+- <i>Checked by the `too-many-attempts-by-ip-address-f` function.</i>
+
+```
+{:unknown-error/optional-check-stage-failed :status 520}
+```
+
+- <i>The optional custom check function returned a false value.</i>
+- <i>Checked by the `optional-check-f` function.</i>
+
+```
+{:standard-activity/unregistered-phone-number-received :status 200}
+```
+
+- <i>No user account has been found with the received phone number.</i>
+- <i>Checked by the `phone-number-registered-f` function.</i>
+
+```
+{:standard-activity/unverified-phone-number-received :status 200}
+```
+
+- <i>A user account has been found with the received phone number.</i>
+- <i>The phone number has not been verified yet.</i>
+- <i>Checked by the `phone-number-verified-f` function.</i>
+
+```
+{:standard-activity/verified-phone-number-received :status 200}
+```
+
+- <i>A user account has been found with the received phone number.</i>
+- <i>The phone number has been verified.</i>
+- <i>Checked by the `phone-number-verified-f` function.</i>
 
 In order to use the `check-phone-number` protocol function, you have to provide
 the following working functions as parameters.
 
 ```
 (defn my-route
-  [request]
-  (check-phone-number request {:phone-number-registered-f         (fn [] ...)
-                               :phone-number-valid-f              (fn [] ...)
-                               :phone-number-verified-f           (fn [] ...)
-                               :too-many-attempts-by-phone-number (fn [] ...)
-                               :too-many-attempts-by-ip-address   (fn [] ...)}))
-```
-
-You could pass a custom security stage for the `check-phone-number` function:
-
-```
-(defn my-route
-  [request]
-  (check-phone-number request {:optional-check-f (fn [] ...)
-                               ...}))
+  [{{:keys [phone-number]} :params :as request}]
+  (check-phone-number request {:phone-number-registered-f         (fn [] "This function must return TRUE if the received email address is registered in your system.")
+                               :phone-number-valid-f              (fn [] "This function must return TRUE if the received email address is valid.")
+                               :phone-number-verified-f           (fn [] "This function must return TRUE if the received email address is verified by the user.")
+                               :too-many-attempts-by-phone-number (fn [] "This function must return TRUE if your log service shows that the received email address has
+                                                                          been used up for too many attempts to do the checking in a recent timeframe.")
+                               :too-many-attempts-by-ip-address   (fn [] "This function must return TRUE if your log service shows that the IP address of the client has
+                                                                          been initiated the checking process too many times in a recent timeframe.")
+                               :optional-check-f                  (fn [] "This function adds an optional custom stage of checking to the protocol. If returns false,
+                                                                          the protocol function returns an error response.")}))
 ```
 
 ### The `create-user-account` protocol
