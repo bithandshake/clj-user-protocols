@@ -120,35 +120,56 @@ this example could be found below.
 ### The `check-email-address` protocol
 
 The [`user-protocols.api/check-email-address`](documentation/clj/user-protocols/API.md/#check-email-address)
-function checks whether an email address is:
-
-- unknown      (not registered)
-- not verified (but registered)
-- verified     (and registered)
+function applies the `check-email-address` protocol.
 
 This protocol function could return with the following HTTP responses:
 
-<details>
-  <summary>`{:invalid-request/missing-user-agent :status 400}`</summary>
-  No user agent is found in the request.
-</details>
+##### `{:invalid-request/missing-ip-address :status 400}`
 
-<details>
-  <summary>`{:invalid-request/missing-ip-address :status 400}`</summary>
-  No user agent is found in the request.
-</details>
+- <i>No IP address is found in the request.</i>
+- <i>Automatically checked by the actual protocol function.</i>
 
-| HTTP response | Description |
-| ------------- | ----------- |
-| `:invalid-request/missing-user-agent`                      `400` | No user agent is found in the request.                                     |
-| `:invalid-request/missing-ip-address`                      `400` | No IP address is found in the request.                                     |
-| `:illegal-client-behaviour/invalid-email-address-received` `403` | Invalid email address has been received.                                   |
-| `:too-many-requests/too-many-attempts-by-email-address`    `429` | Too many actions has been attempted in a specific timeframe.               |
-| `:too-many-requests/too-many-attempts-by-ip-address`       `429` | Too many actions has been attempted in a specific timeframe.               |
-| `:unknown-error/optional-check-stage-failed`               `520` | The custom check function returned a false value.                          |
-| `:standard-activity/unregistered-email-address-received`   `200` | No user has been found with the received email address.                    |
-| `:standard-activity/unverified-email-address-received`     `200` | An unverified user account has been found with the received email address. |
-| `:standard-activity/verified-email-address-received`       `200` | A verified user account has been found with the received email address.    |
+##### `{:invalid-request/missing-user-agent :status 400}`
+
+- <i>No user agent is found in the request.</i>
+- <i>Automatically checked by the actual protocol function.</i>
+
+##### `{:illegal-client-behaviour/invalid-email-address-received :status 403}`
+
+- <i>Invalid email address has been received.</i>
+- <i>Checked by the `email-address-valid-f` function.</i>
+
+##### `{:too-many-requests/too-many-attempts-by-email-address :status 429}`
+
+- <i>Too many actions has been attempted in a specific timeframe.</i>
+- <i>Checked by the `too-many-attempts-by-email-address-f` function.</i>
+
+##### `{:too-many-requests/too-many-attempts-by-ip-address :status 429}`
+
+- <i>Too many actions has been attempted in a specific timeframe.</i>
+- <i>Checked by the `too-many-attempts-by-ip-address-f` function.</i>
+
+##### `{:unknown-error/optional-check-stage-failed :status 520}`
+
+- <i>The optional custom check function returned a false value.</i>
+- <i>Checked by the `optional-check-f` function.</i>
+
+##### `{:standard-activity/unregistered-email-address-received :status 200}`
+
+- <i>No user has been found with the received email address.</i>
+- <i>Checked by the `email-address-registered-f` function.</i>
+
+##### `{:standard-activity/unverified-email-address-received :status 200}`
+
+- <i>A user account has been found with the received email address.</i>
+- <i>The email address has not been verified yet.</i>
+- <i>Checked by the `email-address-verified-f` function.</i>
+
+##### `{:standard-activity/verified-email-address-received :status 200}`
+
+- <i>A user account has been found with the received email address.</i>
+- <i>The email address has been verified.</i>
+- <i>Checked by the `email-address-verified-f` function.</i>
 
 In order to use the `check-email-address` protocol function, you have to provide
 the following working functions as parameters.
