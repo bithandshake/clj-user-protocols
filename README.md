@@ -57,7 +57,7 @@ function checks whether an email address is:
 
 This function could return with the following cases:
 
-`HTTP status 400 (invalid request)`
+###### HTTP status 400 (invalid request)
 
 - `{:body :invalid-request/missing-user-agent :status 400}`
   - No user agent is found in the request.
@@ -67,13 +67,13 @@ This function could return with the following cases:
   - No IP address is found in the request.
   - Automatically checked by the `check-email-address` function.
 
-`HTTP status 403 (illegal client behaviour)`
+###### HTTP status 403 (illegal client behaviour)
 
 - `{:body :illegal-client-behaviour/invalid-email-address-received :status 403}`
   - Invalid email address has been received (despite the client-side form validation).
   - Checked by the given `email-address-valid-f` function (its output is negated).
 
-`HTTP status 429 (too many attempts by the client)`
+###### HTTP status 429 (too many attempts by the client)
 
 - `{:body :too-many-requests/too-many-attempts-by-email-address :status 429}`
   - Email address checking has been attempted with the received email address at
@@ -85,13 +85,13 @@ This function could return with the following cases:
     client devices with a shared IP address).
   - Checked by the given `too-many-attempts-by-ip-address-f` function.
 
-`HTTP status 520 (unknown error)`
+###### HTTP status 520 (unknown error)
 - `{:body :unknown-error/optional-check-stage-failed :status 520}`
   - The given `optional-check-f` function has been returned a false value.
   - Checked by the return value of the given `optional-check-f` function
     (its output is evaluated as boolean).
 
-`HTTP status 200 (standard activity)`
+###### HTTP status 200 (standard activity)
 
 - `{:body :standard-activity/unregistered-email-address-received :status 200}`
   - No user has been found with the received email address.
@@ -142,7 +142,7 @@ function checks whether a phone number is:
 
 This function could return with the following cases:
 
-`HTTP status 400 (invalid request)`
+###### HTTP status 400 (invalid request)
 
 - `{:body :invalid-request/missing-user-agent :status 400}`
   - No user agent is found in the request.
@@ -152,13 +152,13 @@ This function could return with the following cases:
   - No IP address is found in the request.
   - Automatically checked by the `check-phone-number` function.
 
-`HTTP status 403 (illegal client behaviour)`
+###### HTTP status 403 (illegal client behaviour)
 
 - `{:body :illegal-client-behaviour/invalid-phone-number-received :status 403}`
   - Invalid phone number has been received (despite the client-side form validation).
   - Checked by the given `phone-number-valid-f` function (its output is negated).
 
-`HTTP status 429 (too many attempts by the client)`
+###### HTTP status 429 (too many attempts by the client)
 
 - `{:body :too-many-requests/too-many-attempts-by-phone-number :status 429}`
   - Phone number checking has been attempted with the received phone number at
@@ -170,13 +170,13 @@ This function could return with the following cases:
     client devices with a shared IP address).
   - Checked by the given `too-many-attempts-by-ip-address-f` function.
 
-`HTTP status 520 (unknown error)`
+###### HTTP status 520 (unknown error)
 - `{:body :unknown-error/optional-check-stage-failed :status 520}`
   - The given `optional-check-f` function has been returned a false value.
   - Checked by the return value of the given `optional-check-f` function
     (its output is evaluated as boolean).
 
-`HTTP status 200 (standard activity)`
+###### HTTP status 200 (standard activity)
 
 - `{:body :standard-activity/unregistered-phone-number-received :status 200}`
   - No user has been found with the received phone number.
@@ -223,7 +223,7 @@ function creates a user account.
 
 This function could return with the following cases:
 
-`HTTP status 400 (invalid request)`
+###### HTTP status 400 (invalid request)
 
 - `{:body :invalid-request/missing-user-agent :status 400}`
   - No user agent is found in the request.
@@ -233,7 +233,7 @@ This function could return with the following cases:
   - No IP address is found in the request.
   - Automatically checked by the `check-phone-number` function.
 
-`HTTP status 403 (illegal client behaviour)`
+###### HTTP status 403 (illegal client behaviour)
 
 - `{:body :illegal-client-behaviour/invalid-email-address-received :status 403}`
   - Invalid email address has been received (despite the client-side form validation).
@@ -253,7 +253,7 @@ This function could return with the following cases:
     (registration form must check the availability of the email address).
   - Checked by the given `email-address-registered-f` function.
 
-`HTTP status 429 (too many attempts by the client)`
+###### HTTP status 429 (too many attempts by the client)
 
 - `{:body :too-many-requests/too-many-attempts-by-email-address :status 429}`
   - User account creating has been attempted with the received email address at
@@ -265,19 +265,19 @@ This function could return with the following cases:
     client devices with a shared IP address).
   - Checked by the given `too-many-attempts-by-ip-address-f` function.
 
-`HTTP status 500 (server error)`
+###### HTTP status 500 (server error)
 - `{:body :server-error/unable-to-create-user-account :status 500}`
   - User account creating has been failured.
   - Checked by the return value of the given `create-user-account-f` function
     (its output is evaluated as boolean).
 
-`HTTP status 520 (unknown error)`
+###### HTTP status 520 (unknown error)
 - `{:body :unknown-error/optional-check-stage-failed :status 520}`
   - The given `optional-check-f` function has been returned a false value.
   - Checked by the return value of the given `optional-check-f` function
     (its output is evaluated as boolean).
 
-`HTTP status 200 (standard activity)`
+###### HTTP status 200 (standard activity)
 
 - `{:body :standard-activity/unable-to-send-welcome-email :status 200}`
   - Unable to send welcome email.
