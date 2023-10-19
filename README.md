@@ -126,10 +126,11 @@ This protocol function could return with the following HTTP responses:
 
 ```
 {:invalid-request/missing-ip-address :status 400}
-```
 
-- <i>No IP address is found in the request.</i>
-- <i>Automatically checked by the actual protocol function.</i>
+; No IP address is found in the request.
+; Automatically checked by the actual protocol function.
+
+```
 
 ```
 {:invalid-request/missing-user-agent :status 400}
