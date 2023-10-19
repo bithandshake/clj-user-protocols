@@ -99,41 +99,6 @@ If any security concern has been found, the return value could be something like
 The whole list of possible return values of the `check-email-address` function from
 this example could be found below.
 
-### Possible HTTP responses
-
-###### HTTP status 400 (invalid request)
-
-- `{:body :invalid-request/missing-ip-address :status 400}`
-  - No IP address is found in the request.
-  - Automatically checked by the actual protocol function.
-- `{:body :invalid-request/missing-user-agent :status 400}`
-  - No user agent is found in the request.
-  - Automatically checked by the actual protocol function.
-
-###### HTTP status 403 (illegal client behaviour)
-
-- `{:body :illegal-client-behaviour/invalid-email-address-received :status 403}`
-  - Invalid email address has been received (despite the client-side form validation).
-  - Checked by negating the return value of the given `email-address-valid-f` function.
-
-###### HTTP status 429 (too many attempts by the client)
-
-- `{:body :too-many-requests/too-many-attempts-by-email-address :status 429}`
-  - Too many actions has been attempted with the received email address in a specific timeframe.
-  - Checked by evaluating the return value of the given `too-many-attempts-by-email-address-f`
-    function as a boolean.
-- `{:body :too-many-requests/too-many-attempts-by-ip-address :status 429}`
-  - Too many actions has been attempted by the same IP address in a specific timeframe
-    (an IP address could belong to a workplace with different client devices with a shared IP address).
-  - Checked by evaluating the return value of the given `too-many-attempts-by-ip-address-f`
-    function as a boolean.
-
-###### HTTP status 520 (unknown error)
-- `{:body :unknown-error/optional-check-stage-failed :status 520}`
-  - The given `optional-check-f` function has been returned a false value.
-  - Checked by evaluating the return value of the given `optional-check-f` function
-    as a boolean.
-
 ###### HTTP status 200 (standard activity)
 
 - `{:body :standard-activity/unregistered-email-address-received :status 200}`
@@ -165,15 +130,15 @@ This protocol function could return with the following HTTP responses:
 
 | Response body | Status | Description | Checked by |
 | ------------- | ------ | ----------- | ---------- |
-| `:invalid-request/missing-user-agent`                      | `400`  | No user agent is found in the request.                       | The actual protocol function.          |
-| `:invalid-request/missing-ip-address`                      | `400`  | No IP address is found in the request.                       | The actual protocol function.          |
-| `:illegal-client-behaviour/invalid-email-address-received` | `403`  | Invalid email address has been received.                     | `email-address-valid-f` (*neg)         |
-| `:too-many-requests/too-many-attempts-by-email-address`    | `429`  | Too many actions has been attempted in a specific timeframe. | `too-many-attempts-by-email-address-f` |
-| `:too-many-requests/too-many-attempts-by-ip-address`       | `429`  | Too many actions has been attempted in a specific timeframe. | `too-many-attempts-by-ip-address-f`    |
-| `:unknown-error/optional-check-stage-failed`               | `520`  |
-| `:standard-activity/unregistered-email-address-received`   | `200`  |
-| `:standard-activity/unverified-email-address-received`     | `200`  |
-| `:standard-activity/verified-email-address-received`       | `200`  |
+| `:invalid-request/missing-user-agent`                      | `400`  | No user agent is found in the request.                         | The actual protocol function.          |
+| `:invalid-request/missing-ip-address`                      | `400`  | No IP address is found in the request.                         | The actual protocol function.          |
+| `:illegal-client-behaviour/invalid-email-address-received` | `403`  | Invalid email address has been received.                       | `email-address-valid-f` (*neg)         |
+| `:too-many-requests/too-many-attempts-by-email-address`    | `429`  | Too many actions has been attempted in a specific timeframe.   | `too-many-attempts-by-email-address-f` |
+| `:too-many-requests/too-many-attempts-by-ip-address`       | `429`  | Too many actions has been attempted in a specific timeframe.   | `too-many-attempts-by-ip-address-f`    |
+| `:unknown-error/optional-check-stage-failed`               | `520`  | The custom check function returned a false value.              | `optional-check-f` (*neg) |
+| `:standard-activity/unregistered-email-address-received`   | `200`  | No user has been found with the received email address.        | `email-address-registered-f`    |
+| `:standard-activity/unverified-email-address-received`     | `200`  | An unverified user account has been found with the received email address. | `email-address-verified-f` (*neg) |
+| `:standard-activity/verified-email-address-received`       | `200`  | A verified user account has been found with the received email address.    | `email-address-verified-f` |
 
 In order to use the `check-email-address` protocol function, you have to provide
 the following working functions as parameters.
