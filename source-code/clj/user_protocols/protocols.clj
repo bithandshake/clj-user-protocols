@@ -7,7 +7,25 @@
 
 (defn check-email-address
   ; @description
-  ; For further information about this function, check the 'README.md' file.
+  ;
+  ; HTTP status 400 (invalid request):
+  ; - No user agent has been found in the request.
+  ; - No IP address has been found in the request.
+  ;
+  ; HTTP status 403 (illegal client behaviour):
+  ; - Invalid email address has been received despite the client-side form validation.
+  ;
+  ; HTTP status 429 (too many attempts by the client):
+  ; - Too many actions has been attempted with the received email address in a specific timeframe.
+  ; - Too many actions has been attempted with the received IP address in a specific timeframe.
+  ;
+  ; HTTP status 520 (unknown error):
+  ; - The optional check function returned a false value.
+  ;
+  ; HTTP status 200 (standard activity):
+  ; - No user account has been found with the received email address.
+  ; - The email address of the found user account has not been verified.
+  ; - The email address of the found user account has been verified.
   ;
   ; @param (map) request
   ; @param (map) functions
