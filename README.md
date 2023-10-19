@@ -124,48 +124,52 @@ function applies the `check-email-address` protocol.
 
 This protocol function could return with the following HTTP responses:
 
-##### `{:invalid-request/missing-ip-address :status 400}`
+```
+{:invalid-request/missing-ip-address :status 400}
+```
 
 - <i>No IP address is found in the request.</i>
 - <i>Automatically checked by the actual protocol function.</i>
 
-##### `{:invalid-request/missing-user-agent :status 400}`
+```
+{:invalid-request/missing-user-agent :status 400}
+```
 
 - <i>No user agent is found in the request.</i>
 - <i>Automatically checked by the actual protocol function.</i>
 
-##### `{:illegal-client-behaviour/invalid-email-address-received :status 403}`
+`{:illegal-client-behaviour/invalid-email-address-received :status 403}`
 
 - <i>Invalid email address has been received.</i>
 - <i>Checked by the `email-address-valid-f` function.</i>
 
-##### `{:too-many-requests/too-many-attempts-by-email-address :status 429}`
+`{:too-many-requests/too-many-attempts-by-email-address :status 429}`
 
 - <i>Too many actions has been attempted in a specific timeframe.</i>
 - <i>Checked by the `too-many-attempts-by-email-address-f` function.</i>
 
-##### `{:too-many-requests/too-many-attempts-by-ip-address :status 429}`
+`{:too-many-requests/too-many-attempts-by-ip-address :status 429}`
 
 - <i>Too many actions has been attempted in a specific timeframe.</i>
 - <i>Checked by the `too-many-attempts-by-ip-address-f` function.</i>
 
-##### `{:unknown-error/optional-check-stage-failed :status 520}`
+`{:unknown-error/optional-check-stage-failed :status 520}`
 
 - <i>The optional custom check function returned a false value.</i>
 - <i>Checked by the `optional-check-f` function.</i>
 
-##### `{:standard-activity/unregistered-email-address-received :status 200}`
+`{:standard-activity/unregistered-email-address-received :status 200}`
 
 - <i>No user has been found with the received email address.</i>
 - <i>Checked by the `email-address-registered-f` function.</i>
 
-##### `{:standard-activity/unverified-email-address-received :status 200}`
+`{:standard-activity/unverified-email-address-received :status 200}`
 
 - <i>A user account has been found with the received email address.</i>
 - <i>The email address has not been verified yet.</i>
 - <i>Checked by the `email-address-verified-f` function.</i>
 
-##### `{:standard-activity/verified-email-address-received :status 200}`
+`{:standard-activity/verified-email-address-received :status 200}`
 
 - <i>A user account has been found with the received email address.</i>
 - <i>The email address has been verified.</i>
