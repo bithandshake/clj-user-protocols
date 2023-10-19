@@ -128,6 +128,16 @@ function checks whether an email address is:
 
 This protocol function could return with the following HTTP responses:
 
+<details>
+  <summary>`{:invalid-request/missing-user-agent :status 400}`</summary>
+  No user agent is found in the request.
+</details>
+
+<details>
+  <summary>`{:invalid-request/missing-ip-address :status 400}`</summary>
+  No user agent is found in the request.
+</details>
+
 | HTTP response | Description |
 | ------------- | ----------- |
 | `:invalid-request/missing-user-agent`                      `400` | No user agent is found in the request.                                     |
