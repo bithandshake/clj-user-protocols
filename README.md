@@ -29,20 +29,14 @@ You can track the changes of the <strong>clj-user-protocols</strong> library [he
 
 ### Index
 
-- [Abbreviations](#abbreviations)
-
 - [In general](#in-general)
-
-### Abbreviations
-
-- `EAS code`:  Email address security code, for user actions that require multi-factor authentication.
-- `EANP pair`: Email address and password pair, for email address based login method.
-- `PNNP pair`: Phone number and password pair, for phone number based login method.
-- `PNS code`:  Phone number security code, for user actions that require multi-factor authentication.
 
 ### In general
 
 This library is a collection of protocol functions that contain composed security
 checks for the most common user account actions. These protocol functions apply
 security checks by utilizing working functions provided as parameters.
-They do not perform environmental checks or have any side effects on their own
+They do not perform environmental checks or have any side effects on their own.
+
+For further information about the protocol functions check the [functional documentation](documentation/COVER.md)
+or [source code](source-code/clj/user_protocols/protocols.clj).

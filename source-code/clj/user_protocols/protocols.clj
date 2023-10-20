@@ -400,7 +400,7 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn send-security-code-authenticated-f
+(defn send-security-code-authenticated
   ; @description
   ; Security protocol function for sending a security code via email or SMS to an authenticated (logged-in) user.
   ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
@@ -480,12 +480,12 @@
              (boolean (user-rate-limit-exceeded-f))          {:body :too-many-requests/user-rate-limit-exceeded        :status 429}
              (and optional-check-f (not (optional-check-f))) {:body :unknown-error/optional-check-stage-failed         :status 520}
              :sending-security-code (cond (not (send-security-code-f)) {:body :server-error/unable-to-send-security-code :status 500}
-                                     :security-code-sent               {:body :standard-activity/security-code-sent      :status 200}))))
+                                          :security-code-sent          {:body :standard-activity/security-code-sent      :status 200}))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn send-security-code-unauthenticated-f
+(defn send-security-code-unauthenticated
   ; @description
   ; Security protocol function for sending a security code via email or SMS to an unauthenticated (not logged-in) user.
   ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
@@ -572,7 +572,7 @@
              (boolean (user-rate-limit-exceeded-f))           {:body :too-many-requests/user-rate-limit-exceeded                  :status 429}
              (and optional-check-f (not (optional-check-f)))  {:body :unknown-error/optional-check-stage-failed                   :status 520}
              :sending-security-code (cond (not (send-security-code-f)) {:body :server-error/unable-to-send-security-code :status 500}
-                                     :security-code-sent               {:body :standard-activity/security-code-sent      :status 200}))))
+                                          :security-code-sent          {:body :standard-activity/security-code-sent      :status 200}))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -820,7 +820,7 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn verify-security-code-authenticated-f
+(defn verify-security-code-authenticated
   ; @description
   ; Security protocol function for verifying a security code sent via email or SMS to an authenticated (logged-in) user.
   ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
@@ -931,7 +931,7 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn verify-security-code-unauthenticated-f
+(defn verify-security-code-unauthenticated
   ; @description
   ; Security protocol function for verifying a security code sent via email or SMS to an unauthenticated (not logged-in) user.
   ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
