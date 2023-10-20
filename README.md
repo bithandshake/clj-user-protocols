@@ -36,11 +36,9 @@ You can track the changes of the <strong>clj-user-protocols</strong> library [he
 ### Abbreviations
 
 - `EAS code`:  Email address security code, for user actions that require multi-factor authentication.
-- `EAV code`:  Email address verification code, for user email address verification.
 - `EANP pair`: Email address and password pair, for email address based login method.
 - `PNNP pair`: Phone number and password pair, for phone number based login method.
 - `PNS code`:  Phone number security code, for user actions that require multi-factor authentication.
-- `PNV code`:  Phone number verification code, for user phone number verification.
 
 ### In general
 

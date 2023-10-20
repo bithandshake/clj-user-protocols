@@ -5,220 +5,111 @@
 
 ### Index
 
-- [check-email-address](#check-email-address)
-
-- [check-phone-number](#check-phone-number)
-
 - [create-user-account](#create-user-account)
 
 - [remove-user-account](#remove-user-account)
 
-- [update-email-address](#update-email-address)
-
-- [update-phone-number](#update-phone-number)
-
-### check-email-address
-
-```
-@description
-HTTP status 400 (invalid request):
-- No user agent has been found in the request.
-- No IP address has been found in the request.
-HTTP status 403 (illegal client behaviour):
-- Invalid email address has been received despite the client-side form validation.
-HTTP status 429 (too many attempts by the client):
-- Too many actions has been attempted with the received email address in a specific timeframe.
-- Too many actions has been attempted with the received IP address in a specific timeframe.
-HTTP status 520 (unknown error):
-- The optional check function returned a false value.
-HTTP status 200 (standard activity):
-- No user account has been found with the received email address.
-- The email address of the found user account has not been verified.
-- The email address of the found user account has been verified.
-```
-
-```
-@param (map) request
-@param (map) functions
-{:email-address-registered-f (function)
- :email-address-valid-f (function)
- :email-address-verified-f (function)
- :optional-check-f (function)(opt)
- :too-many-attempts-by-email-address-f (function)
- :too-many-attempts-by-ip-address-f (function)}
-```
-
-```
-@return (map)
-{:body (namespaced keyword)
-  :invalid-request/missing-ip-address,
-  :invalid-request/missing-user-agent,
-  :illegal-client-behaviour/invalid-email-address-received,
-  :too-many-requests/too-many-attempts-by-email-address,
-  :too-many-requests/too-many-attempts-ip-address,
-  :standard-activity/unregistered-email-address-received,
-  :standard-activity/unverified-email-address-received,
-  :standard-activity/verified-email-address-received,
-  :unknown-error/optional-check-stage-failed
- :status (integer)
-  200, 400, 403, 429, 520}
-```
-
-<details>
-<summary>Source code</summary>
-
-```
-(defn check-email-address
-  [request {:keys [email-address-registered-f
-                   email-address-valid-f
-                   email-address-verified-f
-                   optional-check-f
-                   too-many-attempts-by-email-address-f
-                   too-many-attempts-by-ip-address-f]}]
-  (let [ip-address (http/request->ip-address request)
-        user-agent (http/request->user-agent request)]
-       (cond (not     (string? ip-address))                   {:body :invalid-request/ip-address-missing                      :status 400}
-             (not     (string? user-agent))                   {:body :invalid-request/user-agent-missing                      :status 400}
-             (not     (email-address-valid-f))                {:body :illegal-client-behaviour/invalid-email-address-received :status 403}
-             (boolean (too-many-attempts-by-email-address-f)) {:body :too-many-requests/too-many-attempts-by-email-address    :status 429}
-             (boolean (too-many-attempts-by-ip-address-f))    {:body :too-many-requests/too-many-attempts-by-ip-address       :status 429}
-             (and optional-check-f (not (optional-check-f)))  {:body :unknown-error/optional-check-stage-failed               :status 520}
-             (not     (email-address-registered-f))           {:body :standard-activity/unregistered-email-address-received   :status 200}
-             (not     (email-address-verified-f))             {:body :standard-activity/unverified-email-address-received     :status 200}
-             :verified-email-address-received                 {:body :standard-activity/verified-email-address-received       :status 200})))
-```
-
-</details>
-
-<details>
-<summary>Require</summary>
-
-```
-(ns my-namespace (:require [user-protocols.api :refer [check-email-address]]))
-
-(user-protocols.api/check-email-address ...)
-(check-email-address                    ...)
-```
-
-</details>
-
----
-
-### check-phone-number
-
-```
-@description
-For further information about this function, check the 'README.md' file.
-```
-
-```
-@param (map) request
-@param (map) functions
-{:optional-check-f (function)(opt)
- :phone-number-registered-f (function)
- :phone-number-valid-f (function)
- :phone-number-verified-f (function)
- :too-many-attempts-by-phone-number-f (function)
- :too-many-attempts-by-ip-address-f (function)}
-```
-
-```
-@return (map)
-{:body (namespaced keyword)
-  :invalid-request/missing-ip-address,
-  :invalid-request/missing-user-agent,
-  :illegal-client-behaviour/invalid-phone-number-received,
-  :too-many-requests/too-many-attempts-by-phone-number,
-  :too-many-requests/too-many-attempts-ip-address,
-  :standard-activity/unregistered-phone-number-received,
-  :standard-activity/unverified-phone-number-received,
-  :standard-activity/verified-phone-number-received,
-  :unknown-error/optional-check-stage-failed
- :status (integer)
-  200, 400, 403, 429, 520}
-```
-
-<details>
-<summary>Source code</summary>
-
-```
-(defn check-phone-number
-  [request {:keys [optional-check-f
-                   phone-number-registered-f
-                   phone-number-valid-f
-                   phone-number-verified-f
-                   too-much-attempts-by-ip-address-f
-                   too-much-attempts-by-phone-number-f
-                   user-logged-in-f]}]
-  (let [ip-address (http/request->ip-address request)
-        user-agent (http/request->user-agent request)]
-       (cond (not     (string? ip-address))                  {:body :invalid-request/ip-address-missing                     :status 400}
-             (not     (string? user-agent))                  {:body :invalid-request/user-agent-missing                     :status 400}
-             (not     (phone-number-valid-f))                {:body :illegal-client-behaviour/invalid-phone-number-received :status 403}
-             (boolean (too-many-attempts-by-phone-number-f)) {:body :too-many-requests/too-many-attempts-by-phone-number    :status 429}
-             (boolean (too-many-attempts-by-ip-address-f))   {:body :too-many-requests/too-many-attempts-by-ip-address      :status 429}
-             (and optional-check-f (not (optional-check-f))) {:body :unknown-error/optional-check-stage-failed              :status 520}
-             (not     (phone-number-registered-f))           {:body :standard-activity/unregistered-phone-number-received   :status 200}
-             (not     (phone-number-verified-f))             {:body :standard-activity/unverified-phone-number-received     :status 200}
-             :verified-phone-number-received                 {:body :standard-activity/verified-phone-number-received       :status 200})))
-```
-
-</details>
-
-<details>
-<summary>Require</summary>
-
-```
-(ns my-namespace (:require [user-protocols.api :refer [check-phone-number]]))
-
-(user-protocols.api/check-phone-number ...)
-(check-phone-number                    ...)
-```
-
-</details>
-
----
+- [update-user-account](#update-user-account)
 
 ### create-user-account
 
 ```
 @description
-For further information about this function, check the 'README.md' file.
+Security protocol function for creating a user account that is identified by an email address or a phone number and protected by a password.
+Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
 ```
 
 ```
 @param (map) request
 @param (map) functions
-{:create-user-f (function)
- :email-address-registered-f (function)
- :email-address-valid-f (function)
+{:client-rate-limit-exceeded-f (function)
+  Must return TRUE if the client device or IP address is involved in too many attempts in a specific timeframe.
+ :create-user-account-f (function)
+  Must return TRUE if the user account has been successfully created.
  :optional-check-f (function)(opt)
- :password-valid-f (function)
- :send-welcome-email-f (function)
+  Custom security stage that if returns false, the protocol function returns an error response.
+ :send-welcome-message-f (function)
+  Must return TRUE if the welcome email / SMS has been successfully sent.
+ :user-contact-registered-f (function)
+  Must return TRUE if the received email address / phone number is registered.
+ :user-contact-valid-f (function)
+  Must return TRUE if the received email address / phone number is valid.
  :user-data-valid-f (function)
+  Must return TRUE if the received user data is valid.
  :user-logged-in-f (function)
- :too-many-attempts-by-email-address-f (function)
- :too-many-attempts-by-ip-address-f (function)
- :too-many-failure-by-email-address-f (function)}
+  Must return TRUE the request contains a valid (logged-in) user session.
+ :user-password-valid-f (function)
+  Must return TRUE if the received user password is valid.
+ :user-rate-limit-exceeded-f (function)
+  Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+```
+
+```
+@usage
+(create-user-account {...} {...})
+```
+
+```
+@example
+(create-user-account {...} {...})
+=>
+{:body :too-many-requests/user-rate-limit-exceeded :status 429}
+```
+
+```
+@example
+(defn my-route
+  [request]
+  (let [email-address (-> request :params :email-address)
+        user-password (-> request :params :password)
+        ip-address    (-> request :remote-addr)
+        user-data     (-> request :params)
+        user-session  (-> request :session)]
+       (create-user-account request {:client-rate-limit-exceeded-f #(my-log-service/too-many-attempts-by-ip-address?    ip-address)
+                                     :create-user-account-f        #(my-database/create-user-account!                   user-data)
+                                     :user-contact-registered-f    #(my-database/email-address-registered?              email-address)
+                                     :user-contact-valid-f         #(my-validator/email-address-valid?                  email-address)
+                                     :user-contact-verified-f      #(my-database/email-address-verified?                email-address)
+                                     :user-password-valid-f        #(my-validator/user-password-valid?                  user-password)
+                                     :send-welcome-message-f       #(my-email-service/send-welcome-email!               email-address)
+                                     :user-data-valid-f            #(my-validator/user-data-valid?                      user-data)
+                                     :user-logged-in-f             #(my-validator/user-session-valid?                   user-session)
+                                     :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-email-address? email-address)})))
+=>
+{:body :standard-activity/user-account-created :status 200}
 ```
 
 ```
 @return (map)
 {:body (namespaced keyword)
-  :invalid-request/missing-ip-address,
-  :invalid-request/missing-user-agent,
-  :illegal-client-behaviour/invalid-email-address-received,
-  :illegal-client-behaviour/invalid-password-received,
-  :illegal-client-behaviour/invalid-user-data-received,
-  :illegal-client-behaviour/user-already-logged-in,
-  :illegal-client-behaviour/email-address-already-registered,
-  :server-error/unable-to-create-user-account,
-  :too-many-requests/too-many-attempts-by-email-address,
-  :too-many-requests/too-many-attempts-ip-address,
-  :too-many-requests/too-many-failure-email-address,
-  :standard-activity/unable-to-send-welcome-email,
-  :standard-activity/user-account-created,
+  :invalid-request/missing-ip-address
+  (No IP address has been found in the request),
+  :invalid-request/missing-user-agent
+  (No user agent has been found in the request),
+  :illegal-client-behaviour/invalid-user-contact-received
+  (Invalid email address / phone number has been received),
+  :illegal-client-behaviour/invalid-user-data-received
+  (Invalid user data has been received),
+  :illegal-client-behaviour/invalid-user-password-received
+  (Invalid user password has been received),
+  :illegal-client-behaviour/user-already-logged-in
+  (The user has been already logged in and has a valid session),
+  :illegal-client-behaviour/registered-user-contact-received
+  (Registered email address / phone number has been received),
+  :server-error/unable-to-create-user-account
+  (The server cannot create the user account),
+  :standard-activity/unable-to-send-welcome-message
+  (The server cannot send the welcome email / SMS to the user. It's not declared
+   as an error because before the contact validation, the given email address /
+   phone number might contain typos or might not working),
+  :standard-activity/user-account-created
+  (The server has been successfully created the user account),
+  :too-many-requests/client-rate-limit-exceeded
+  (Too many actions has been attempted by the client device or IP address in a specific timeframe),
+  :too-many-requests/user-rate-limit-exceeded
+  (Too many actions has been attempted by the user in a specific timeframe),
   :unknown-error/optional-check-stage-failed
+  (The optional check function returned a false value)
  :status (integer)
   200, 400, 403, 429, 500, 520}
 ```
@@ -228,33 +119,31 @@ For further information about this function, check the 'README.md' file.
 
 ```
 (defn create-user-account
-  [request {:keys [create-user-account-f
-                   email-address-registered-f
-                   email-address-valid-f
+  [request {:keys [client-rate-limit-exceeded-f
+                   create-user-account-f
                    optional-check-f
-                   password-valid-f
-                   send-welcome-email-f
+                   send-welcome-message-f
+                   user-contact-registered-f
+                   user-contact-valid-f
                    user-data-valid-f
                    user-logged-in-f
-                   too-many-attempts-by-email-address-f
-                   too-many-attempts-by-ip-address-f
-                   too-many-failure-by-email-address-f]}]
+                   user-password-valid-f
+                   user-rate-limit-exceeded-f]}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
        (cond (not     (string? ip-address))                   {:body :invalid-request/ip-address-missing                        :status 400}
              (not     (string? user-agent))                   {:body :invalid-request/user-agent-missing                        :status 400}
-             (not     (email-address-valid-f))                {:body :illegal-client-behaviour/invalid-email-address-received   :status 403}
-             (not     (password-valid-f))                     {:body :illegal-client-behaviour/invalid-password-received        :status 403}
+             (not     (user-contact-valid-f))                 {:body :illegal-client-behaviour/invalid-user-contact-received    :status 403}
+             (not     (user-password-valid-f))                {:body :illegal-client-behaviour/invalid-user-password-received   :status 403}
              (not     (user-data-valid-f))                    {:body :illegal-client-behaviour/invalid-user-data-received       :status 403}
              (boolean (user-logged-in-f))                     {:body :illegal-client-behaviour/user-already-logged-in           :status 403}
-             (boolean (email-address-registered-f))           {:body :illegal-client-behaviour/email-address-already-registered :status 403}
-             (boolean (too-many-attempts-by-email-address-f)) {:body :too-many-requests/too-many-attempts-by-email-address      :status 429}
-             (boolean (too-many-attempts-by-ip-address-f))    {:body :too-many-requests/too-many-attempts-by-ip-address         :status 429}
-             (boolean (too-many-failure-by-ip-address-f))     {:body :too-many-requests/too-many-failure-by-ip-address          :status 429}
+             (boolean (user-contact-registered-f))            {:body :illegal-client-behaviour/registered-user-contact-received :status 403}
+             (boolean (client-rate-limit-exceeded-f))         {:body :too-many-requests/client-rate-limit-exceeded              :status 429}
+             (boolean (user-rate-limit-exceeded-f))           {:body :too-many-requests/user-rate-limit-exceeded                :status 429}
              (and optional-check-f (not (optional-check-f)))  {:body :unknown-error/optional-check-stage-failed                 :status 520}
-             :creating-user-account (cond (not (send-welcome-email-f))  {:body :standard-activity/unable-to-send-welcome-email :status 200}
-                                          (not (create-user-account-f)) {:body :server-error/unable-to-create-user-account     :status 500}
-                                          :user-account-created         {:body :standard-activity/user-account-created         :status 200}))))
+             :creating-user-account (cond (not (send-welcome-message-f)) {:body :standard-activity/unable-to-send-welcome-message :status 200}
+                                          (not (create-user-account-f))  {:body :server-error/unable-to-create-user-account       :status 500}
+                                          :user-account-created          {:body :standard-activity/user-account-created           :status 200}))))
 ```
 
 </details>
@@ -276,19 +165,123 @@ For further information about this function, check the 'README.md' file.
 ### remove-user-account
 
 ```
+@description
+Security protocol function for a user account removal that requires a user password and security code verification.
+Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+```
+
+```
 @param (map) request
-{:session (map)
-  {:user-account/id (string)}
- :transit-params (map)
-  {:password (string)
-   :ruv-code (string)}}
+@param (map) functions
+{:client-rate-limit-exceeded-f (function)
+  Must return TRUE if the client device or IP address is involved in too many attempts in a specific timeframe.
+ :optional-check-f (function)(opt)
+  Custom security stage that if returns false, the protocol function returns an error response.
+ :remove-user-account-f (function)
+  Must return TRUE if the user account has been successfully removed.
+ :security-code-correct-f (function)
+  Must return TRUE if the received security code is correct.
+ :security-code-expired-f (function)
+  Must return TRUE if the received security code has been expired.
+ :security-code-required-from-another-ip-address-f (function)
+  Must return TRUE if the received security code has been required from another IP address.
+ :security-code-sent-f (function)
+  Must return TRUE if a security code has been sent.
+ :security-code-valid-f (function)
+  Must return TRUE if the received security code is valid.
+ :send-goodbye-message-f (function)
+  Must return TRUE if the goodbye email / SMS has been successfully sent.
+ :user-id-exists-f (function)
+  Must return TRUE the user ID exists.
+ :user-logged-in-f (function)
+  Must return TRUE the request contains a valid (logged-in) user session.
+ :user-password-correct-f (function)
+  Must return TRUE if the received user password matches the stored one.
+ :user-password-valid-f (function)
+  Must return TRUE if the received user password is valid.
+ :user-rate-limit-exceeded-f (function)
+  Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+```
+
+```
+@usage
+(remove-user-account {...} {...})
+```
+
+```
+@example
+(remove-user-account {...} {...})
+=>
+{:body :too-many-requests/user-rate-limit-exceeded :status 429}
+```
+
+```
+@example
+(defn my-route
+  [request]
+  (let [user-password (-> request :params :password)
+        security-code (-> request :params :security-code)
+        ip-address    (-> request :remote-addr)
+        user-id       (-> request :session :user-id)
+        user-session  (-> request :session)]
+       (remove-user-account request {:client-rate-limit-exceeded-f                     #(my-log-service/too-many-attempts-by-ip-address?                ip-address)
+                                     :remove-user-account-f                            #(my-database/remove-user-account!                               user-id)
+                                     :security-code-correct-f                          #(my-database/security-code-matches?                             user-id security-code)
+                                     :security-code-expired-f                          #(my-database/security-code-expired?                             user-id)
+                                     :security-code-required-from-another-ip-address-f #(my-log-service/security-code-required-from-another-ip-address? user-id ip-address)
+                                     :security-code-sent-f                             #(my-database/security-code-sent?                                user-id)
+                                     :security-code-valid-f                            #(my-validator/security-code-valid?                              security-code)
+                                     :send-goodbye-message-f                           #(my-email-service/send-goodbye-email!                           user-id)
+                                     :user-id-exists-f                                 #(my-database/user-id-exists?                                    user-id)
+                                     :user-logged-in-f                                 #(my-validator/user-session-valid?                               user-session)
+                                     :user-password-correct-f                          #(my-database/user-password-matches?                             user-password)
+                                     :user-password-valid-f                            #(my-validator/user-password-valid?                              user-password)
+                                     :user-rate-limit-exceeded-f                       #(my-log-service/too-many-attempts-by-user-id?                   user-id)})))
+=>
+{:body :standard-activity/user-account-removed :status 200}
 ```
 
 ```
 @return (map)
-{:body (keyword)
+{:body (namespaced keyword)
+  :invalid-request/missing-ip-address
+  (No IP address has been found in the request),
+  :invalid-request/missing-user-agent
+  (No user agent has been found in the request),
+  :illegal-client-behaviour/invalid-security-code-received
+  (Invalid security code has been received),
+  :illegal-client-behaviour/invalid-user-password-received
+  (Invalid user password has been received),
+  :illegal-client-behaviour/no-security-code-sent-in-timeframe
+  (No security code has been sent in a specific timeframe),
+  :illegal-client-behaviour/security-code-required-from-another-ip-address
+  (The received security code has been required from another IP address),
+  :illegal-client-behaviour/user-id-not-exists
+  (The user ID does not exist),
+  :illegal-client-behaviour/user-not-logged-in
+  (The user is not logged in / unauthenticated),
+  :server-error/unable-to-remove-user-account
+  (The server cannot remove the user account),
+  :server-error/unable-to-send-goodbye-message
+  (The server cannot send the goodbye email / SMS to the user),
+  :standard-activity/expired-security-code-received
+  (Expired security code has been received),
+  :standard-activity/incorrect-security-code-received
+  (Incorrect security code has been received),
+  :standard-activity/incorrect-user-password-received
+  (Incorrect user password has been received),
+  :standard-activity/user-account-removed
+  (The server has been successfully removed the user account),
+  :too-many-requests/client-rate-limit-exceeded
+  (Too many actions has been attempted by the client device or IP address in a specific timeframe),
+  :too-many-requests/user-rate-limit-exceeded
+  (Too many actions has been attempted by the user in a specific timeframe),
+  :unknown-error/optional-check-stage-failed
+  (The optional check function returned a false value)
  :session (map)
- :status (integer)}
+  {}
+ :status (integer)
+  200, 400, 403, 429, 500, 520}
 ```
 
 <details>
@@ -296,40 +289,39 @@ For further information about this function, check the 'README.md' file.
 
 ```
 (defn remove-user-account
-  [request {:keys [email-address-verified-f
-                   password-correct-f
-                   remove-user-f
+  [request {:keys [client-rate-limit-exceeded-f
+                   optional-check-f
+                   remove-user-account-f
+                   security-code-correct-f
                    security-code-expired-f
-                   security-code-incorrect-f
                    security-code-sent-f
                    security-code-valid-f
                    security-code-required-from-another-ip-address-f
-                   send-goodbye-email-f
-                   session-valid-f
-                   user-id-known-f
-                   too-much-attempts-by-ip-address-f
-                   too-much-failure-by-ip-address-f
-                   too-much-attempts-by-user-id-f]}]
-
+                   send-goodbye-message-f
+                   user-id-exists-f
+                   user-logged-in-f
+                   user-password-correct-f
+                   user-password-valid-f
+                   user-rate-limit-exceeded-f]}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
-       (cond (not     (string? user-agent))                               {:body :user-agent-missing                             :status 400}
-             (not     (string? ip-address))                               {:body :ip-address-missing                             :status 400}
-             (not     (security-code-valid-f))                            {:body :security-code-invalid                          :status 403}
-             (not     (security-code-sent-f))                             {:body :no-security-code-sent-in-timeframe             :status 403}
-             (boolean (security-code-required-from-another-ip-address-f)) {:body :security-code-required-from-another-ip-address :status 403}
-             (not     (session-valid-f))                                  {:body :invalid-session                                :status 403}
-             (not     (user-id-known-f))                                  {:body :user-id-unknown                                :status 403}
-             (not     (email-address-verified-f))                         {:body :email-address-not-verified                     :status 403}
-             (boolean (too-much-attempts-by-user-id-f))                   {:body :too-much-attempts-by-user-id                   :status 429}
-             (boolean (too-much-attempts-by-ip-address-f))                {:body :too-much-attempts-by-ip-address                :status 429}
-             (boolean (too-much-failure-by-ip-address-f))                 {:body :too-much-failure-by-ip-address                 :status 429}
-             (not     (password-correct-f))                               {:body :password-incorrect                             :status 200}
-             (not     (security-code-correct-f))                          {:body :security-code-incorrect                        :status 200}
-             (boolean (security-code-expired-f))                          {:body :security-code-expired                          :status 200}
-             :removing-account-account (cond (not (send-goodbye-email-f))  {:body :unable-to-send-goodbye-email  :status 500}
-                                             (not (remove-user-account-f)) {:body :unable-to-remove-user-account :status 500}
-                                             :user-account-removed         {:body :user-account-removed          :status 200 :session {}}))))
+       (cond (not     (string? user-agent))                               {:body :invalid-request/user-agent-missing                                      :status 400}
+             (not     (string? ip-address))                               {:body :invalid-request/ip-address-missing                                      :status 400}
+             (not     (user-password-valid-f))                            {:body :illegal-client-behaviour/invalid-user-password-received                 :status 403}
+             (not     (security-code-valid-f))                            {:body :illegal-client-behaviour/invalid-security-code-received                 :status 403}
+             (not     (security-code-sent-f))                             {:body :illegal-client-behaviour/no-security-code-sent-in-timeframe             :status 403}
+             (boolean (security-code-required-from-another-ip-address-f)) {:body :illegal-client-behaviour/security-code-required-from-another-ip-address :status 403}
+             (not     (user-id-exists-f))                                 {:body :illegal-client-behaviour/user-id-not-exists                             :status 403}
+             (not     (user-logged-in-f))                                 {:body :illegal-client-behaviour/user-not-logged-in                             :status 403}
+             (boolean (client-rate-limit-exceeded-f))                     {:body :too-many-requests/client-rate-limit-exceeded                            :status 429}
+             (boolean (user-rate-limit-exceeded-f))                       {:body :too-many-requests/user-rate-limit-exceeded                              :status 429}
+             (and optional-check-f (not (optional-check-f)))              {:body :unknown-error/optional-check-stage-failed                               :status 520}
+             (not     (user-password-correct-f))                          {:body :standard-activity/incorrect-user-password-received                      :status 200}
+             (not     (security-code-correct-f))                          {:body :standard-activity/incorrect-security-code-received                      :status 200}
+             (boolean (security-code-expired-f))                          {:body :standard-activity/expired-security-code-received                        :status 200}
+             :removing-account-account (cond (not (send-goodbye-message-f)) {:body :server-error/unable-to-send-goodbye-message :status 500}
+                                             (not (remove-user-account-f))  {:body :server-error/unable-to-remove-user-account  :status 500}
+                                             :user-account-removed          {:body :standard-activity/user-account-removed      :status 200 :session {}}))))
 ```
 
 </details>
@@ -348,33 +340,114 @@ For further information about this function, check the 'README.md' file.
 
 ---
 
-### update-email-address
+### update-user-account
+
+```
+@description
+Security protocol function for updating a user account.
+Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+```
 
 ```
 @param (map) request
-{:session (map)
-  {:user-account/id (string)}
- :transit-params (map)
-  {:email-address (string)
-   :password (string)
-   :ueav-code (string)}}
+@param (map) functions
+{:client-rate-limit-exceeded-f (function)
+  Must return TRUE if the client device or IP address is involved in too many attempts in a specific timeframe.
+ :optional-check-f (function)(opt)
+  Custom security stage that if returns false, the protocol function returns an error response.
+ :update-user-account-f (function)
+  Must return TRUE if the user account has been successfully updated.
+ :user-data-valid-f (function)
+  Must return TRUE if the received user data is valid.
+ :user-id-exists-f (function)
+  Must return TRUE the user ID exists.
+ :user-logged-in-f (function)
+  Must return TRUE the request contains a valid (logged-in) user session.
+ :user-rate-limit-exceeded-f (function)
+  Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+```
+
+```
+@usage
+(update-user-account {...} {...})
+```
+
+```
+@example
+(update-user-account {...} {...})
+=>
+{:body :too-many-requests/user-rate-limit-exceeded :status 429}
+```
+
+```
+@example
+(defn my-route
+  [request]
+  (let [ip-address   (-> request :remote-addr)
+        user-data    (-> request :params)
+        user-id      (-> request :session :user-id)
+        user-session (-> request :session)]
+       (update-user-account request {:client-rate-limit-exceeded-f #(my-log-service/too-many-attempts-by-ip-address? ip-address)
+                                     :update-user-account-f        #(my-database/update-user-account!                user-id user-data)
+                                     :user-data-valid-f            #(my-validator/user-data-valid?                   user-data)
+                                     :user-id-exists-f             #(my-database/user-id-exists?                     user-id)
+                                     :user-logged-in-f             #(my-validator/user-session-valid?                user-session)
+                                     :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-user-id?    user-id)})))
+=>
+{:body :standard-activity/user-account-update :status 200}
 ```
 
 ```
 @return (map)
-{:body (string)
- :status (integer)}
+{:body (namespaced keyword)
+  :invalid-request/missing-ip-address
+  (No IP address has been found in the request),
+  :invalid-request/missing-user-agent
+  (No user agent has been found in the request),
+  :illegal-client-behaviour/invalid-user-data-received
+  (Invalid user data has been received),
+  :illegal-client-behaviour/user-id-not-exists
+  (The user ID does not exist),
+  :illegal-client-behaviour/user-not-logged-in
+  (The user is not logged in / unauthenticated),
+  :server-error/unable-to-update-user-account
+  (The server cannot update the user account),
+  :standard-activity/user-account-updated
+  (The server has been successfully updated the user account),
+  :too-many-requests/client-rate-limit-exceeded
+  (Too many actions has been attempted by the client device or IP address in a specific timeframe),
+  :too-many-requests/user-rate-limit-exceeded
+  (Too many actions has been attempted by the user in a specific timeframe),
+  :unknown-error/optional-check-stage-failed
+  (The optional check function returned a false value)
+ :status (integer)
+  200, 400, 403, 429, 500, 520}
 ```
 
 <details>
 <summary>Source code</summary>
 
 ```
-(defn update-email-address
-  [request]
-  (let [response (update-email-address-f request)]
-       (services.log/reg-user-activity! {:action :updating-email-address :request request :response response})
-       (http/text-wrap response {:hide-errors? true})))
+(defn update-user-account
+  [request {:keys [client-rate-limit-exceeded-f
+                   optional-check-f
+                   update-user-account-f
+                   user-data-valid-f
+                   user-id-exists-f
+                   user-logged-in-f
+                   user-rate-limit-exceeded-f]}]
+  (let [ip-address (http/request->ip-address request)
+        user-agent (http/request->user-agent request)]
+       (cond (not     (string? ip-address))                  {:body :invalid-request/ip-address-missing                  :status 400}
+             (not     (string? user-agent))                  {:body :invalid-request/user-agent-missing                  :status 400}
+             (not     (user-id-exists-f))                    {:body :illegal-client-behaviour/user-id-not-exists         :status 403}
+             (not     (user-logged-in-f))                    {:body :illegal-client-behaviour/user-not-logged-in         :status 403}
+             (not     (user-data-valid-f))                   {:body :illegal-client-behaviour/invalid-user-data-received :status 403}
+             (boolean (client-rate-limit-exceeded-f))        {:body :too-many-requests/client-rate-limit-exceeded        :status 429}
+             (boolean (user-rate-limit-exceeded-f))          {:body :too-many-requests/user-rate-limit-exceeded          :status 429}
+             (and optional-check-f (not (optional-check-f))) {:body :unknown-error/optional-check-stage-failed           :status 520}
+             :updating-user-account (cond (not (update-user-account-f)) {:body :server-error/unable-to-update-user-account :status 500}
+                                          :user-account-updated         {:body :standard-activity/user-account-updated     :status 200}))))
 ```
 
 </details>
@@ -383,55 +456,10 @@ For further information about this function, check the 'README.md' file.
 <summary>Require</summary>
 
 ```
-(ns my-namespace (:require [user-protocols.api :refer [update-email-address]]))
+(ns my-namespace (:require [user-protocols.api :refer [update-user-account]]))
 
-(user-protocols.api/update-email-address ...)
-(update-email-address                    ...)
-```
-
-</details>
-
----
-
-### update-phone-number
-
-```
-@param (map) request
-{:session (map)
-  {:user-account/id (string)}
- :transit-params (map)
-  {:password (string)
-   :phone-number (string)
-   :upnv-code (string)}}
-```
-
-```
-@return (map)
-{:body (string)
- :status (integer)}
-```
-
-<details>
-<summary>Source code</summary>
-
-```
-(defn update-phone-number
-  [request]
-  (let [response (update-phone-number-f request)]
-       (services.log/reg-user-activity! {:action :updating-phone-number :request request :response response})
-       (http/text-wrap response {:hide-errors? true})))
-```
-
-</details>
-
-<details>
-<summary>Require</summary>
-
-```
-(ns my-namespace (:require [user-protocols.api :refer [update-phone-number]]))
-
-(user-protocols.api/update-phone-number ...)
-(update-phone-number                    ...)
+(user-protocols.api/update-user-account ...)
+(update-user-account                    ...)
 ```
 
 </details>
