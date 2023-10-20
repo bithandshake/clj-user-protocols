@@ -1,5 +1,5 @@
 
-(ns user-protocols.protocols
+(ns user-security-protocols.protocols
     (:require [http.api :as http]))
 
 ;; ----------------------------------------------------------------------------

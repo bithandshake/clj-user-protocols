@@ -1,11 +1,11 @@
 
-(ns user-protocols.api
-    (:require [user-protocols.protocols :as protocols]))
+(ns user-security-protocols.api
+    (:require [user-security-protocols.protocols :as protocols]))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-; user-protocols.protocols
+; user-security-protocols.protocols
 (def check-user-contact                   protocols/check-user-contact)
 (def create-user-account                  protocols/create-user-account)
 (def drop-user-session                    protocols/drop-user-session)
