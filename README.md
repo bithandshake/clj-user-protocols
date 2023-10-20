@@ -44,8 +44,7 @@ You can track the changes of the <strong>clj-user-protocols</strong> library [he
 
 ### In general
 
-This library is a set of protocol functions that are containing composed security
-checks for the most common user account actions. These protocol functions are only
-applying the security checks by using working functions that are provided as parameters,
-and they are not doing any environmental checking and not making any side effects
-on their own!
+This library is a collection of protocol functions that contain composed security
+checks for the most common user account actions. These protocol functions apply
+security checks by utilizing working functions provided as parameters.
+They do not perform environmental checks or have any side effects on their own
