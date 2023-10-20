@@ -244,7 +244,7 @@
   ;   (The optional check function returned a false value)
   ;  :status (integer)
   ;   200, 400, 520}
-  [_ {:keys [optional-check-f]}]
+  [request {:keys [optional-check-f]}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
        (cond (not (string? ip-address))                      {:body :invalid-request/ip-address-missing        :status 400}
@@ -906,6 +906,7 @@
   [request {:keys [client-rate-limit-exceeded-f
                    optional-check-f
                    security-code-correct-f
+                   security-code-expired-f
                    security-code-sent-f
                    security-code-valid-f
                    security-code-required-from-another-ip-address-f
@@ -1256,10 +1257,10 @@
   ;   200, 400, 403, 429, 520}
   [request {:keys [client-rate-limit-exceeded-f
                    optional-check-f
-                   pin-code-correct-f
-                   pin-code-valid-f
                    user-id-exists-f
                    user-logged-in-f
+                   user-pin-code-correct-f
+                   user-pin-code-valid-f
                    user-rate-limit-exceeded-f]}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]

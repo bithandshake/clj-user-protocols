@@ -7,7 +7,7 @@
 
 ; user-protocols.protocols
 (def check-user-contact                   protocols/check-user-contact)
-(def create-user-account                  protocols/create-user-contact)
+(def create-user-account                  protocols/create-user-account)
 (def drop-user-session                    protocols/drop-user-session)
 (def remove-user-account                  protocols/remove-user-account)
 (def send-security-code-authenticated     protocols/send-security-code-authenticated)
