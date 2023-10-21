@@ -1,13 +1,13 @@
 
-# clj-user-protocols documentation
+# clj-security-protocols documentation
 
-Documentation of the [clj-user-protocols](https://github.com/bithandshake/clj-user-protocols) Clojure library
+Documentation of the [clj-security-protocols](https://github.com/bithandshake/clj-security-protocols) Clojure library
 
 ##### [README](../README.md) > DOCUMENTATION
 
 ### Clojure namespaces
 
-* [user-protocols.api](clj/user-protocols/API.md)
+* [user-security-protocols.api](clj/user-security-protocols/API.md)
 
 ---
 
