@@ -10,7 +10,7 @@
 (defn check-user-contact
   ; @description
   ; Security protocol function for checking a user contact such as an email address or a phone number whether it is registered and/or verified.
-  ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -87,9 +87,9 @@
         user-agent (http/request->user-agent request)]
        (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                     :status 400}
              (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                     :status 400}
-             (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received        :status 403}
              (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
              (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
+             (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received        :status 403}
              (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed            :status 520}
              (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed           :status 520}
              (not (user-contact-registered-f))                     {:body :performed-request/unregistered-user-contact-received   :status 200}
@@ -102,7 +102,7 @@
 (defn create-user-account
   ; @description
   ; Security protocol function for creating a user account that is identified by an email address or a phone number and protected by a password.
-  ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -203,13 +203,13 @@
         user-agent (http/request->user-agent request)]
        (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                 :status 400}
              (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                 :status 400}
+             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded       :status 429}
+             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded         :status 429}
              (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received    :status 403}
              (not (user-password-valid-f))                         {:body :forbidden-request/invalid-user-password-received   :status 403}
              (not (user-data-valid-f))                             {:body :forbidden-request/invalid-user-data-received       :status 403}
              (boolean (user-authenticated-f))                      {:body :forbidden-request/user-authenticated               :status 403}
              (boolean (user-contact-registered-f))                 {:body :forbidden-request/registered-user-contact-received :status 403}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded       :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded         :status 429}
              (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed        :status 520}
              (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed       :status 520}
              (not (send-welcome-message-f))                        {:body :server-error/unable-to-send-welcome-message        :status 500}
@@ -289,10 +289,10 @@
         user-agent (http/request->user-agent request)]
        (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address           :status 400}
              (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent           :status 400}
-             (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated       :status 403}
-             (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists            :status 403}
              (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded :status 429}
              (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded   :status 429}
+             (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated       :status 403}
+             (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists            :status 403}
              (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed  :status 520}
              (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed :status 520}
              :user-session-dropped                                 {:body :performed-request/user-session-dropped       :status 200 :session {}})))
@@ -303,7 +303,7 @@
 (defn remove-user-account
   ; @description
   ; Security protocol function for a user account removal that requires a user password and security code verification.
-  ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -432,14 +432,14 @@
         user-agent (http/request->user-agent request)]
        (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                     :status 400}
              (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                     :status 400}
+             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
+             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
              (not (user-password-valid-f))                         {:body :forbidden-request/invalid-user-password-received       :status 403}
              (not (security-code-valid-f))                         {:body :forbidden-request/invalid-security-code-received       :status 403}
              (not (security-code-sent-f))                          {:body :forbidden-request/no-security-code-sent-in-timeframe   :status 403}
              (not (security-code-ip-address-matches-f))            {:body :forbidden-request/security-code-ip-address-not-matches :status 403}
              (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated                 :status 403}
              (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists                      :status 403}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
              (not (user-password-correct-f))                       {:body :unauthorized-request/incorrect-user-password-received  :status 401}
              (not (security-code-correct-f))                       {:body :unauthorized-request/incorrect-security-code-received  :status 401}
              (boolean (security-code-expired-f))                   {:body :unauthorized-request/expired-security-code-received    :status 401}
@@ -455,7 +455,7 @@
 (defn send-security-code-authenticated
   ; @description
   ; Security protocol function for sending a security code via email or SMS to an authenticated (logged-in) user.
-  ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -532,10 +532,10 @@
         user-agent (http/request->user-agent request)]
        (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address           :status 400}
              (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent           :status 400}
-             (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated       :status 403}
-             (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists            :status 403}
              (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded :status 429}
              (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded   :status 429}
+             (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated       :status 403}
+             (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists            :status 403}
              (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed  :status 520}
              (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed :status 520}
              (not (send-security-code-f))                          {:body :server-error/unable-to-send-security-code    :status 500}
@@ -547,7 +547,7 @@
 (defn send-security-code-unauthenticated
   ; @description
   ; Security protocol function for sending a security code via email or SMS to an unauthenticated (not logged-in) user.
-  ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -630,11 +630,11 @@
         user-agent (http/request->user-agent request)]
        (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                   :status 400}
              (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                   :status 400}
+             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded         :status 429}
+             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded           :status 429}
              (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received      :status 403}
              (not (user-contact-registered-f))                     {:body :forbidden-request/unregistered-user-contact-received :status 403}
              (boolean (user-authenticated-f))                      {:body :forbidden-request/user-authenticated                 :status 403}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded         :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded           :status 429}
              (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed          :status 520}
              (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed         :status 520}
              (not (send-security-code-f))                          {:body :server-error/unable-to-send-security-code            :status 500}
@@ -646,7 +646,7 @@
 (defn update-user-contact
   ; @description
   ; Security protocol function for a user account's email address or phone number update that requires a user password and security code verification.
-  ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -780,6 +780,8 @@
         user-agent (http/request->user-agent request)]
        (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                     :status 400}
              (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                     :status 400}
+             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
+             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
              (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received        :status 403}
              (not (user-password-valid-f))                         {:body :forbidden-request/invalid-user-password-received       :status 403}
              (not (security-code-valid-f))                         {:body :forbidden-request/invalid-security-code-received       :status 403}
@@ -788,8 +790,6 @@
              (not (security-code-ip-address-matches-f))            {:body :forbidden-request/security-code-ip-address-not-matches :status 403}
              (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated                 :status 403}
              (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists                      :status 403}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
              (not (user-password-correct-f))                       {:body :unauthorized-request/incorrect-user-password-received  :status 401}
              (not (security-code-correct-f))                       {:body :unauthorized-request/incorrect-security-code-received  :status 401}
              (boolean (security-code-expired-f))                   {:body :unauthorized-request/expired-security-code-received    :status 401}
@@ -804,7 +804,7 @@
 (defn update-user-account
   ; @description
   ; Security protocol function for updating a user account.
-  ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -888,11 +888,11 @@
         user-agent (http/request->user-agent request)]
        (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address           :status 400}
              (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent           :status 400}
+             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded :status 429}
+             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded   :status 429}
              (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated       :status 403}
              (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists            :status 403}
              (not (user-data-valid-f))                             {:body :forbidden-request/invalid-user-data-received :status 403}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded   :status 429}
              (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed  :status 520}
              (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed :status 520}
              (not (update-user-account-f))                         {:body :server-error/unable-to-update-user-account   :status 500}
@@ -904,7 +904,7 @@
 (defn verify-security-code-authenticated
   ; @description
   ; Security protocol function for verifying a security code sent via email or SMS to an authenticated (logged-in) user.
-  ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -1004,13 +1004,13 @@
         user-agent (http/request->user-agent request)]
        (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                     :status 400}
              (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                     :status 400}
+             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
+             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
              (not (security-code-valid-f))                         {:body :forbidden-request/invalid-security-code-received       :status 403}
              (not (security-code-sent-f))                          {:body :forbidden-request/no-security-code-sent-in-timeframe   :status 403}
              (not (security-code-ip-address-matches-f))            {:body :forbidden-request/security-code-ip-address-not-matches :status 403}
              (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated                 :status 403}
              (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists                      :status 403}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
              (not (security-code-correct-f))                       {:body :unauthorized-request/incorrect-security-code-received  :status 401}
              (boolean (security-code-expired-f))                   {:body :unauthorized-request/expired-security-code-received    :status 401}
              (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed            :status 520}
@@ -1023,7 +1023,7 @@
 (defn verify-security-code-unauthenticated
   ; @description
   ; Security protocol function for verifying a security code sent via email or SMS to an unauthenticated (not logged-in) user.
-  ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; In case of the 'provide-session-f' function is passed, no security check has been failed, and the received security code is correct,
   ; then it applies the 'provide-session-f' function on the HTTP response.
   ;
@@ -1151,6 +1151,8 @@
         user-agent (http/request->user-agent request)]
        (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                     :status 400}
              (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                     :status 400}
+             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
+             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
              (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received        :status 403}
              (not (user-password-valid-f))                         {:body :forbidden-request/invalid-user-password-received       :status 403}
              (not (security-code-valid-f))                         {:body :forbidden-request/invalid-security-code-received       :status 403}
@@ -1158,8 +1160,6 @@
              (not (security-code-ip-address-matches-f))            {:body :forbidden-request/security-code-ip-address-not-matches :status 403}
              (not (user-contact-registered-f))                     {:body :forbidden-request/unregistered-user-contact-received   :status 403}
              (boolean (user-authenticated-f))                      {:body :forbidden-request/user-authenticated                   :status 403}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
              (not (user-password-correct-f))                       {:body :unauthorized-request/incorrect-user-password-received  :status 401}
              (not (security-code-correct-f))                       {:body :unauthorized-request/incorrect-security-code-received  :status 401}
              (boolean (security-code-expired-f))                   {:body :unauthorized-request/expired-security-code-received    :status 401}
@@ -1173,7 +1173,7 @@
 (defn verify-user-password
   ; @description
   ; Security protocol function for verifying a user password and optionally sending an MFA security code.
-  ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; In case of the 'provide-session-f' function is passed, the 'send-security-code-f' function is NOT passed, no security check has
   ; been failed, and the received user password is correct, then it applies the 'provide-session-f' function on the HTTP response.
   ;
@@ -1283,13 +1283,13 @@
         user-agent (http/request->user-agent request)]
        (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                    :status 400}
              (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                    :status 400}
+             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
+             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
              (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received       :status 403}
              (not (user-password-valid-f))                         {:body :forbidden-request/invalid-user-password-received      :status 403}
              (not (user-contact-registered-f))                     {:body :forbidden-request/unregistered-user-contact-received  :status 403}
              (not (user-contact-verified-f))                       {:body :forbidden-request/unverified-user-contact-received    :status 403}
              (boolean (user-authenticated-f))                      {:body :forbidden-request/user-authenticated                  :status 403}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
              (not (user-password-correct-f))                       {:body :unauthorized-request/incorrect-user-password-received :status 401}
              (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed           :status 520}
              (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed          :status 520}
@@ -1303,7 +1303,7 @@
 (defn verify-user-pin-code
   ; @description
   ; Security protocol function for verifying a user PIN code.
-  ; Performs various security checks before returns a HTTP response that indicates if any check failured or the action was successful.
+  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -1387,11 +1387,11 @@
         user-agent (http/request->user-agent request)]
        (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                    :status 400}
              (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                    :status 400}
+             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
+             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
              (not (user-pin-code-valid-f))                         {:body :forbidden-request/invalid-user-pin-code-received      :status 403}
              (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated                :status 403}
              (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists                     :status 403}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
              (not (user-pin-code-correct-f))                       {:body :unauthorized-request/incorrect-user-pin-code-received :status 401}
              (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed           :status 520}
              (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed          :status 520}
