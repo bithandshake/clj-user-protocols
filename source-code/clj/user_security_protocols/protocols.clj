@@ -7,35 +7,38 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn check-user-contact
+(defn check-user-identifier
   ; @description
-  ; Security protocol function for checking a user contact such as an email address or a phone number whether it is registered and/or verified.
-  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ; - Security protocol function for checking a user identifier (email address / phone number / username) whether it is registered and/or verified.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
   ;   Custom side-effect function that is applied if no security check has been failed.
   ;   Must return TRUE in case of successful execution.
-  ;  :additional-check-f (function)(opt)
+  ;  :additional-security-f (function)(opt)
   ;   Custom security function that is applied after the built-in security checks.
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :user-contact-registered-f (function)
-  ;   Must return TRUE if the received email address / phone number is registered.
-  ;  :user-contact-valid-f (function)
-  ;   Must return TRUE if the received email address / phone number is valid.
-  ;  :user-contact-verified-f (function)
-  ;   Must return TRUE if the received email address / phone number is verified.
+  ;  :user-identifier-registered-f (function)
+  ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
+  ;  :user-identifier-valid-f (function)
+  ;   Must return TRUE if the received user identifier (email address / phone number / username) is valid.
+  ;  :user-identifier-verified-f (function)(opt)
+  ;   Optional function for checking a user identifier (if contact: email address / phone number) whether it is verified.
+  ;   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
   ;  :user-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
-  ; (check-user-contact {...} {...})
+  ; (check-user-identifier {...} {...})
   ;
   ; @example
-  ; (check-user-contact {...} {...})
+  ; (check-user-identifier {...} {...})
   ; =>
   ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
   ;
@@ -44,86 +47,98 @@
   ;   [request]
   ;   (let [ip-address    (-> request :remote-addr)
   ;         email-address (-> request :params :email-address)]
-  ;        (check-user-contact request {:client-rate-limit-exceeded-f #(my-log-service/too-many-attempts-by-ip-address?    ip-address)
-  ;                                     :user-contact-registered-f    #(my-database/email-address-registered?              email-address)
-  ;                                     :user-contact-valid-f         #(my-validator/email-address-valid?                  email-address)
-  ;                                     :user-contact-verified-f      #(my-database/email-address-verified?                email-address)
-  ;                                     :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-email-address? email-address)})))
+  ;        (check-user-identifier request {:client-rate-limit-exceeded-f  #(my-log-service/too-many-attempts-by-ip-address?    ip-address)
+  ;                                        :user-identifier-registered-f  #(my-database/email-address-registered?              email-address)
+  ;                                        :user-identifier-valid-f       #(my-validator/email-address-valid?                  email-address)
+  ;                                        :user-identifier-verified-f    #(my-database/email-address-verified?                email-address)
+  ;                                        :user-rate-limit-exceeded-f    #(my-log-service/too-many-attempts-by-email-address? email-address)})))
   ; =>
-  ; {:body :performed-request/user-contact-verified :status 200}
+  ; {:body :performed-request/user-identifier-verified :status 200}
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-user-contact-received
-  ;   (Invalid email address has been received),
+  ;   :forbidden-request/invalid-user-identifier-received
+  ;   (Invalid user identifier (email address / phone number / username) has been received),
   ;   :invalid-request/invalid-ip-address
   ;   (No valid IP address has been found in the request),
   ;   :invalid-request/invalid-user-agent
   ;   (No valid user agent has been found in the request),
-  ;   :performed-request/unregistered-user-contact-received
-  ;   (Unregistered email address / phone number has been received),
-  ;   :performed-request/unverified-user-contact-received
-  ;   (Registered but unverified email address / phone number has been received),
-  ;   :performed-request/verified-user-contact-received
-  ;   (Registered and verified email address / phone number has been received),
+  ;   :performed-request/unregistered-user-identifier-received
+  ;   (Unregistered user identifier (email address / phone number / username) has been received),
+  ;   :performed-request/unverified-user-identifier-received
+  ;   (Registered but unverified user identifier (if contact: email address / phone number) has been received),
+  ;   :performed-request/verified-user-identifier-received
+  ;   (Registered and verified user identifier (email address / phone number / username) has been received),
   ;   :too-many-requests/client-rate-limit-exceeded
   ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
   ;   (Too many actions has been attempted by the user in a specific timeframe),
   ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value)
-  ;   :unknown-error/additional-check-stage-failed
-  ;   (The additional check function returned a false value)
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 403, 429, 520}
   [request {:keys [additional-action-f
-                   additional-check-f
+                   additional-security-f
                    client-rate-limit-exceeded-f
-                   user-contact-registered-f
-                   user-contact-valid-f
-                   user-contact-verified-f
+                   user-identifier-registered-f
+                   user-identifier-valid-f
+                   user-identifier-verified-f
                    user-rate-limit-exceeded-f]}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
-       (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                     :status 400}
-             (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                     :status 400}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
-             (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received        :status 403}
-             (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed            :status 520}
-             (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed           :status 520}
-             (not (user-contact-registered-f))                     {:body :performed-request/unregistered-user-contact-received   :status 200}
-             (not (user-contact-verified-f))                       {:body :performed-request/unverified-user-contact-received     :status 200}
-             :verified-user-contact-received                       {:body :performed-request/verified-user-contact-received       :status 200})))
+       (cond (not (audit/ip-address-valid? ip-address))                          {:body :invalid-request/invalid-ip-address                      :status 400}
+             (not (audit/user-agent-valid? user-agent))                          {:body :invalid-request/invalid-user-agent                      :status 400}
+             (boolean (client-rate-limit-exceeded-f))                            {:body :too-many-requests/client-rate-limit-exceeded            :status 429}
+             (boolean (user-rate-limit-exceeded-f))                              {:body :too-many-requests/user-rate-limit-exceeded              :status 429}
+             (not (user-identifier-valid-f))                                     {:body :forbidden-request/invalid-user-identifier-received      :status 403}
+             (and additional-security-f (not (additional-security-f)))           {:body :unknown-error/additional-security-stage-failed          :status 520}
+             (and additional-action-f   (not (additional-action-f)))             {:body :unknown-error/additional-action-stage-failed            :status 520}
+             (not (user-identifier-registered-f))                                {:body :performed-request/unregistered-user-identifier-received :status 200}
+             (and user-identifier-verified-f (not (user-identifier-verified-f))) {:body :performed-request/unverified-user-identifier-received   :status 200}
+             :verified-user-identifier-received                                  {:body :performed-request/verified-user-identifier-received     :status 200})))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
 (defn create-user-account
   ; @description
-  ; Security protocol function for creating a user account that is identified by an email address or a phone number and protected by a password.
-  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ; - Security protocol function for creating a user account that is identified by a user identifier (email address / phone number / username)
+  ;   and protected by password.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ; - In case of the 'provide-session-f' function is passed, no security check has been failed, and the user account is successfully created
+  ;   it applies the 'provide-session-f' function on the HTTP response.
   ;
   ; @param (map) request
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
   ;   Custom side-effect function that is applied if no security check has been failed.
   ;   Must return TRUE in case of successful execution.
-  ;  :additional-check-f (function)(opt)
+  ;  :additional-security-f (function)(opt)
   ;   Custom security function that is applied after the built-in security checks.
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :send-welcome-message-f (function)
+  ;  :create-user-f (function)
+  ;   Side-effect function for creating the user account, applied after and if every security check passed.
+  ;   Must return TRUE if the user account has been successfully created.
+  ;  :provide-session-f (function)(opt)
+  ;   Optional function for associating a user session to the HTTP response if no security check has been failed.
+  ;   Must take the response as parameter, and associate a user session to it.
+  ;  :send-welcome-message-f (function)(opt)
+  ;   Optional side-effect function for sending a welcome message to the user, applied after and if every security check passed.
   ;   Must return TRUE if the welcome email / SMS has been successfully sent.
   ;  :user-authenticated-f (function)
-  ;   Must return TRUE the request contains an authenticated / logged in user session.
-  ;  :user-contact-registered-f (function)
-  ;   Must return TRUE if the received email address / phone number is registered.
-  ;  :user-contact-valid-f (function)
-  ;   Must return TRUE if the received email address / phone number is valid.
+  ;   Must return TRUE the user is authenticated / logged in.
   ;  :user-data-valid-f (function)
   ;   Must return TRUE if the received user data is valid.
+  ;  :user-identifier-registered-f (function)
+  ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
+  ;  :user-identifier-valid-f (function)
+  ;   Must return TRUE if the received user identifier (email address / phone number / username) is valid.
   ;  :user-password-valid-f (function)
   ;   Must return TRUE if the received user password is valid.
   ;  :user-rate-limit-exceeded-f (function)
@@ -146,11 +161,12 @@
   ;         user-data     (-> request :params)]
   ;        (create-user-account request {:client-rate-limit-exceeded-f #(my-log-service/too-many-attempts-by-ip-address?    ip-address)
   ;                                      :create-user-account-f        #(my-database/create-user-account!                   user-data)
+  ;                                      :provide-session-f            #(my-session-handler/add-session-to-response         %)
   ;                                      :send-welcome-message-f       #(my-email-service/send-welcome-email!               email-address)
   ;                                      :user-authenticated-f         #(my-validator/request-has-valid-session-valid?      request)
-  ;                                      :user-contact-registered-f    #(my-database/email-address-registered?              email-address)
-  ;                                      :user-contact-valid-f         #(my-validator/email-address-valid?                  email-address)
   ;                                      :user-data-valid-f            #(my-validator/user-data-valid?                      user-data)
+  ;                                      :user-identifier-registered-f #(my-database/email-address-registered?              email-address)
+  ;                                      :user-identifier-valid-f      #(my-validator/email-address-valid?                  email-address)
   ;                                      :user-password-valid-f        #(my-validator/user-password-valid?                  user-password)
   ;                                      :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-email-address? email-address)})))
   ; =>
@@ -158,14 +174,14 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-user-contact-received
-  ;   (Invalid email address / phone number has been received),
+  ;   :forbidden-request/invalid-user-identifier-received
+  ;   (Invalid user identifier (email address / phone number / username) has been received),
   ;   :forbidden-request/invalid-user-data-received
   ;   (Invalid user data has been received),
   ;   :forbidden-request/invalid-user-password-received
   ;   (Invalid user password has been received),
-  ;   :forbidden-request/registered-user-contact-received
-  ;   (Registered email address / phone number has been received),
+  ;   :forbidden-request/registered-user-identifier-received
+  ;   (Registered user identifier (email address / phone number / username) has been received),
   ;   :forbidden-request/user-authenticated
   ;   (The user is authenticated / logged in),
   ;   :invalid-request/invalid-ip-address
@@ -183,59 +199,65 @@
   ;   :too-many-requests/user-rate-limit-exceeded
   ;   (Too many actions has been attempted by the user in a specific timeframe),
   ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value)
-  ;   :unknown-error/additional-check-stage-failed
-  ;   (The additional check function returned a false value)
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
   ;  :status (integer)
   ;   201, 400, 403, 429, 500, 520}
   [request {:keys [additional-action-f
-                   additional-check-f
+                   additional-security-f
                    client-rate-limit-exceeded-f
                    create-user-account-f
+                   provide-session-f
                    send-welcome-message-f
                    user-authenticated-f
-                   user-contact-registered-f
-                   user-contact-valid-f
                    user-data-valid-f
+                   user-identifier-registered-f
+                   user-identifier-valid-f
                    user-password-valid-f
-                   user-rate-limit-exceeded-f]}]
+                   user-rate-limit-exceeded-f]
+            :or {provide-session-f return}}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
-       (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                 :status 400}
-             (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                 :status 400}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded       :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded         :status 429}
-             (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received    :status 403}
-             (not (user-password-valid-f))                         {:body :forbidden-request/invalid-user-password-received   :status 403}
-             (not (user-data-valid-f))                             {:body :forbidden-request/invalid-user-data-received       :status 403}
-             (boolean (user-authenticated-f))                      {:body :forbidden-request/user-authenticated               :status 403}
-             (boolean (user-contact-registered-f))                 {:body :forbidden-request/registered-user-contact-received :status 403}
-             (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed        :status 520}
-             (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed       :status 520}
-             (not (send-welcome-message-f))                        {:body :server-error/unable-to-send-welcome-message        :status 500}
-             (not (create-user-account-f))                         {:body :server-error/unable-to-create-user-account         :status 500}
-             :user-account-created                                 {:body :performed-request/user-account-created             :status 201})))
+       (cond (not (audit/ip-address-valid? ip-address))                  {:body :invalid-request/invalid-ip-address                    :status 400}
+             (not (audit/user-agent-valid? user-agent))                  {:body :invalid-request/invalid-user-agent                    :status 400}
+             (boolean (client-rate-limit-exceeded-f))                    {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
+             (boolean (user-rate-limit-exceeded-f))                      {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
+             (boolean (user-authenticated-f))                            {:body :forbidden-request/user-authenticated                  :status 403}
+             (not (user-identifier-valid-f))                             {:body :forbidden-request/invalid-user-identifier-received    :status 403}
+             (not (user-password-valid-f))                               {:body :forbidden-request/invalid-user-password-received      :status 403}
+             (not (user-data-valid-f))                                   {:body :forbidden-request/invalid-user-data-received          :status 403}
+             (boolean (user-identifier-registered-f))                    {:body :forbidden-request/registered-user-identifier-received :status 403}
+             (and additional-security-f  (not (additional-security-f)))  {:body :unknown-error/additional-security-stage-failed        :status 520}
+             (and additional-action-f    (not (additional-action-f)))    {:body :unknown-error/additional-action-stage-failed          :status 520}
+             (and send-welcome-message-f (not (send-welcome-message-f))) {:body :server-error/unable-to-send-welcome-message           :status 500}
+             (not (create-user-account-f))                               {:body :server-error/unable-to-create-user-account            :status 500}
+             :user-account-created                                       (provide-session-f {:body :performed-request/user-account-created :status 201}))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
 (defn drop-user-session
   ; @description
-  ; Security protocol function for dropping a user session.
-  ; Performs various security checks before returns a HTTP response indicating the result of the checks.
+  ; - Security protocol function for dropping a user session.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response indicating the result of the checks.
   ;
   ; @param (map) request
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
   ;   Custom side-effect function that is applied if no security check has been failed.
   ;   Must return TRUE in case of successful execution.
-  ;  :additional-check-f (function)(opt)
+  ;  :additional-security-f (function)(opt)
   ;   Custom security function that is applied after the built-in security checks.
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :drop-session-f (function)
+  ;   Must take the response as parameter, and remove the user session from it.
   ;  :user-authenticated-f (function)
-  ;   Must return TRUE the request contains an authenticated / logged in user session.
+  ;   Must return TRUE the user is authenticated / logged in.
   ;  :user-exists-f (function)
   ;   Must return TRUE the user exists.
   ;  :user-rate-limit-exceeded-f (function)
@@ -255,6 +277,7 @@
   ;   (let [ip-address (-> request :remote-addr)
   ;         user-id    (-> request :session :user-id)]
   ;        (drop-user-session request {:client-rate-limit-exceeded-f #(my-log-service/too-many-attempts-by-ip-address? ip-address)
+  ;                                    :drop-session-f               #(assoc % :session {})
   ;                                    :user-authenticated-f         #(my-validator/request-has-valid-session?         request)
   ;                                    :user-exists-f                #(my-database/user-id-exists?                     user-id)
   ;                                    :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-user-id?    user-id}))
@@ -274,67 +297,237 @@
   ;   :performed-request/user-session-dropped
   ;   (The user session has been removed successfully),
   ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value)
-  ;   :unknown-error/additional-check-stage-failed
-  ;   (The additional check function returned a false value)
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 429, 520}
   [request {:keys [additional-action-f
-                   additional-check-f
+                   additional-security-f
                    client-rate-limit-exceeded-f
+                   drop-session-f
                    user-authenticated-f
                    user-exists-f
                    user-rate-limit-exceeded-f]}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
-       (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address           :status 400}
-             (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent           :status 400}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded   :status 429}
-             (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated       :status 403}
-             (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists            :status 403}
-             (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed  :status 520}
-             (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed :status 520}
-             :user-session-dropped                                 {:body :performed-request/user-session-dropped       :status 200 :session {}})))
+       (cond (not (audit/ip-address-valid? ip-address))                {:body :invalid-request/invalid-ip-address             :status 400}
+             (not (audit/user-agent-valid? user-agent))                {:body :invalid-request/invalid-user-agent             :status 400}
+             (boolean (client-rate-limit-exceeded-f))                  {:body :too-many-requests/client-rate-limit-exceeded   :status 429}
+             (boolean (user-rate-limit-exceeded-f))                    {:body :too-many-requests/user-rate-limit-exceeded     :status 429}
+             (not (user-authenticated-f))                              {:body :forbidden-request/user-unauthenticated         :status 403}
+             (not (user-exists-f))                                     {:body :forbidden-request/user-not-exists              :status 403}
+             (and additional-security-f (not (additional-security-f))) {:body :unknown-error/additional-security-stage-failed :status 520}
+             (and additional-action-f   (not (additional-action-f)))   {:body :unknown-error/additional-action-stage-failed   :status 520}
+             :user-session-dropped                                     (drop-session-f {:body :performed-request/user-session-dropped :status 200}))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn remove-user-account
+(defn recover-user-password
   ; @description
-  ; Security protocol function for a user account removal that requires a user password and security code verification.
-  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ; - Security protocol function for user password recovering with security code verification.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ; - In case of the 'provide-session-f' function is passed, no security check has been failed, and the received security code is correct,
+  ;   it applies the 'provide-session-f' function on the HTTP response.
   ;
   ; @param (map) request
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
   ;   Custom side-effect function that is applied if no security check has been failed.
   ;   Must return TRUE in case of successful execution.
-  ;  :additional-check-f (function)(opt)
+  ;  :additional-security-f (function)(opt)
   ;   Custom security function that is applied after the built-in security checks.
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :remove-user-account-f (function)
-  ;   Must return TRUE if the user account has been successfully removed.
+  ;  :fresh-password-valid-f (function)
+  ;   Must return TRUE if the received fresh password is valid.
+  ;  :provide-session-f (function)(opt)
+  ;   Optional function for associating a user session to the HTTP response if no security check has been failed.
+  ;   Must take the response as parameter, and associate a user session to it.
+  ;  :recover-user-password-f (function)
+  ;   Side-effect function for recovering the user's password, applied after and if every security check passed.
+  ;   Must return TRUE if the user's password has been successfully recovered.
   ;  :security-code-correct-f (function)
   ;   Must return TRUE if the received security code is correct.
+  ;  :security-code-device-matches-f (function)
+  ;   Must return TRUE if the received security code has been required from the same device.
   ;  :security-code-expired-f (function)
   ;   Must return TRUE if the received security code has been expired.
-  ;  :security-code-ip-address-matches-f (function)
-  ;   Must return TRUE if the received security code has been required from the same IP address.
   ;  :security-code-sent-f (function)
   ;   Must return TRUE if a security code has been sent.
   ;  :security-code-valid-f (function)
   ;   Must return TRUE if the received security code is valid.
-  ;  :send-goodbye-message-f (function)
+  ;  :user-authenticated-f (function)
+  ;   Must return TRUE the user is authenticated / logged in.
+  ;  :user-identifier-registered-f (function)
+  ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
+  ;  :user-identifier-valid-f (function)
+  ;   Must return TRUE if the received user identifier (email address / phone number / username) is valid.
+  ;  :user-identifier-verified-f (function)(opt)
+  ;   Optional function for checking a user identifier (if contact: email address / phone number) whether it is verified.
+  ;   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
+  ;  :user-rate-limit-exceeded-f (function)
+  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ;
+  ; @usage
+  ; (recover-user-password {...} {...})
+  ;
+  ; @example
+  ; (recover-user-password {...} {...})
+  ; =>
+  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ;
+  ; @example
+  ; (defn my-route
+  ;   [request]
+  ;   (let [ip-address     (-> request :remote-addr)
+  ;         email-address  (-> request :params :email-address)
+  ;         fresh-password (-> request :params :fresh-password)
+  ;         security-code  (-> request :params :security-code)
+  ;         user-id        (my-database/get-user-id-by-email-address email-address)]
+  ;        (recover-user-password request {:client-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-ip-address?                 ip-address)
+  ;                                        :fresh-password-valid-f         #(my-validator/user-password-valid?                               fresh-password)
+  ;                                        :provide-session-f              #(my-session-handler/add-session-to-response                      %)
+  ;                                        :recover-user-password-f        #(my-database/recover-user-password!                              user-id fresh-password)
+  ;                                        :security-code-correct-f        #(my-database/security-code-matches?                              user-id security-code)
+  ;                                        :security-code-device-matches-f #(my-log-service/security-code-required-from-the-same-ip-address? user-id ip-address)
+  ;                                        :security-code-expired-f        #(my-database/security-code-expired?                              user-id)
+  ;                                        :security-code-sent-f           #(my-database/security-code-sent?                                 user-id)
+  ;                                        :security-code-valid-f          #(my-validator/security-code-valid?                               security-code)
+  ;                                        :user-authenticated-f           #(my-validator/request-has-valid-session?                         request)
+  ;                                        :user-identifier-registered-f   #(my-database/email-address-registered?                           email-address)
+  ;                                        :user-identifier-valid-f        #(my-validator/email-address-valid?                               email-address)
+  ;                                        :user-identifier-verified-f     #(my-database/email-address-verified?                             email-address)
+  ;                                        :user-rate-limit-exceeded-f     #(my-log-service/too-many-attempts-by-user-id?                    user-id)})))
+  ; =>
+  ; {:body :performed-request/user-password-recovered :status 200}
+  ;
+  ; @return (map)
+  ; {:body (namespaced keyword)
+  ;   :invalid-request/invalid-ip-address
+  ;   (No valid IP address has been found in the request),
+  ;   :invalid-request/invalid-user-agent
+  ;   (No valid user agent has been found in the request),
+  ;   :forbidden-request/invalid-fresh-password-received
+  ;   (Invalid fresh password has been received),
+  ;   :forbidden-request/invalid-security-code-received
+  ;   (Invalid security code has been received),
+  ;   :forbidden-request/invalid-user-identifier-received
+  ;   (Invalid user identifier (email address / phone number / username) has been received),
+  ;   :forbidden-request/no-security-code-sent-in-timeframe
+  ;   (No security code has been sent in a specific timeframe),
+  ;   :forbidden-request/security-code-device-not-matches
+  ;   (The received security code has been required from another device),
+  ;   :forbidden-request/unregistered-user-identifier-received
+  ;   (Unregistered user identifier (email address / phone number / username) has been received),
+  ;   :forbidden-request/unverified-user-identifier-received
+  ;   (Unverified user identifier (if contact: email address / phone number) has been received),
+  ;   :forbidden-request/user-authenticated
+  ;   (The user is authenticated / logged in),
+  ;   :performed-request/user-password-recovered
+  ;   (The server has been successfully recovered the user's password),
+  ;   :server-error/unable-to-recover-user-password
+  ;   (The server cannot recover the user's password),
+  ;   :too-many-requests/client-rate-limit-exceeded
+  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   :too-many-requests/user-rate-limit-exceeded
+  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   :unauthorized-request/expired-security-code-received
+  ;   (Expired security code has been received),
+  ;   :unauthorized-request/incorrect-security-code-received
+  ;   (Incorrect security code has been received),
+  ;   :unknown-error/additional-action-stage-failed
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
+  ;  :status (integer)
+  ;   200, 400, 401, 403, 429, 500, 520}
+  [request {:keys [additional-action-f
+                   additional-security-f
+                   client-rate-limit-exceeded-f
+                   fresh-password-valid-f
+                   provide-session-f
+                   recover-user-password-f
+                   security-code-correct-f
+                   security-code-device-matches-f
+                   security-code-expired-f
+                   security-code-sent-f
+                   security-code-valid-f
+                   user-authenticated-f
+                   user-identifier-registered-f
+                   user-identifier-valid-f
+                   user-identifier-verified-f
+                   user-rate-limit-exceeded-f]
+            :or {provide-session-f return}}]
+  (let [ip-address (http/request->ip-address request)
+        user-agent (http/request->user-agent request)]
+       (cond (not (audit/ip-address-valid? ip-address))                          {:body :invalid-request/invalid-ip-address                      :status 400}
+             (not (audit/user-agent-valid? user-agent))                          {:body :invalid-request/invalid-user-agent                      :status 400}
+             (boolean (client-rate-limit-exceeded-f))                            {:body :too-many-requests/client-rate-limit-exceeded            :status 429}
+             (boolean (user-rate-limit-exceeded-f))                              {:body :too-many-requests/user-rate-limit-exceeded              :status 429}
+             (boolean (user-authenticated-f))                                    {:body :forbidden-request/user-authenticated                    :status 403}
+             (not (fresh-password-valid-f))                                      {:body :forbidden-request/invalid-fresh-password-received       :status 403}
+             (not (user-identifier-valid-f))                                     {:body :forbidden-request/invalid-user-identifier-received      :status 403}
+             (not (security-code-valid-f))                                       {:body :forbidden-request/invalid-security-code-received        :status 403}
+             (not (security-code-sent-f))                                        {:body :forbidden-request/no-security-code-sent-in-timeframe    :status 403}
+             (not (user-identifier-registered-f))                                {:body :forbidden-request/unregistered-user-identifier-received :status 403}
+             (not (security-code-device-matches-f))                              {:body :forbidden-request/security-code-device-not-matches      :status 403}
+             (and user-identifier-verified-f (not (user-identifier-verified-f))) {:body :forbidden-request/unverified-user-identifier-received   :status 403}
+             (not (security-code-correct-f))                                     {:body :unauthorized-request/incorrect-security-code-received   :status 401}
+             (boolean (security-code-expired-f))                                 {:body :unauthorized-request/expired-security-code-received     :status 401}
+             (and additional-security-f (not (additional-security-f)))           {:body :unknown-error/additional-security-stage-failed          :status 520}
+             (and additional-action-f   (not (additional-action-f)))             {:body :unknown-error/additional-action-stage-failed            :status 520}
+             (not (recover-user-password-f))                                     {:body :server-error/unable-to-recover-user-password            :status 500}
+             :user-password-recovered                                            (provide-session-f {:body :performed-request/user-password-recovered :status 200}))))
+
+;; ----------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+
+(defn remove-user-account
+  ; @description
+  ; - Security protocol function for user account removal with user password, and security code verification.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ;
+  ; @param (map) request
+  ; @param (map) functions
+  ; {:additional-action-f (function)(opt)
+  ;   Custom side-effect function that is applied if no security check has been failed.
+  ;   Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)
+  ;   Custom security function that is applied after the built-in security checks.
+  ;   Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)
+  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :drop-session-f (function)
+  ;   Must take the response as parameter, and remove the user session from it.
+  ;  :remove-user-account-f (function)
+  ;   Side-effect function for removing the user account, applied after and if every security check passed.
+  ;   Must return TRUE if the user account has been successfully removed.
+  ;  :security-code-correct-f (function)
+  ;   Must return TRUE if the received security code is correct.
+  ;  :security-code-device-matches-f (function)
+  ;   Must return TRUE if the received security code has been required from the same device.
+  ;  :security-code-expired-f (function)
+  ;   Must return TRUE if the received security code has been expired.
+  ;  :security-code-sent-f (function)
+  ;   Must return TRUE if a security code has been sent.
+  ;  :security-code-valid-f (function)
+  ;   Must return TRUE if the received security code is valid.
+  ;  :send-goodbye-message-f (function)(opt)
+  ;   Optional side-effect function for sending a goodbye message to the user, applied after and if every security check passed.
   ;   Must return TRUE if the goodbye email / SMS has been successfully sent.
   ;  :user-authenticated-f (function)
-  ;   Must return TRUE the request contains an authenticated / logged in user session.
+  ;   Must return TRUE the user is authenticated / logged in.
   ;  :user-exists-f (function)
   ;   Must return TRUE the user exists.
   ;  :user-password-correct-f (function)
-  ;   Must return TRUE if the received user password matches the stored one.
+  ;   Must return TRUE if the received user password is correct.
   ;  :user-password-valid-f (function)
   ;   Must return TRUE if the received user password is valid.
   ;  :user-rate-limit-exceeded-f (function)
@@ -355,21 +548,22 @@
   ;         user-password (-> request :params :password)
   ;         security-code (-> request :params :security-code)
   ;         user-id       (-> request :session :user-id)]
-  ;        (remove-user-account request {:client-rate-limit-exceeded-f       #(my-log-service/too-many-attempts-by-ip-address?                 ip-address)
-  ;                                      :remove-user-account-f              #(my-database/remove-user-account!                                user-id)
-  ;                                      :security-code-correct-f            #(my-database/security-code-matches?                              user-id security-code)
-  ;                                      :security-code-expired-f            #(my-database/security-code-expired?                              user-id)
-  ;                                      :security-code-ip-address-matches-f #(my-log-service/security-code-required-from-the-same-ip-address? user-id ip-address)
-  ;                                      :security-code-sent-f               #(my-database/security-code-sent?                                 user-id)
-  ;                                      :security-code-valid-f              #(my-validator/security-code-valid?                               security-code)
-  ;                                      :send-goodbye-message-f             #(my-email-service/send-goodbye-email!                            user-id)
-  ;                                      :user-authenticated-f               #(my-validator/request-has-valid-session?                         request)
-  ;                                      :user-exists-f                      #(my-database/user-id-exists?                                     user-id)
-  ;                                      :user-password-correct-f            #(my-database/user-password-matches?                              user-password)
-  ;                                      :user-password-valid-f              #(my-validator/user-password-valid?                               user-password)
-  ;                                      :user-rate-limit-exceeded-f         #(my-log-service/too-many-attempts-by-user-id?                    user-id)})))
+  ;        (remove-user-account request {:client-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-ip-address?                 ip-address)
+  ;                                      :drop-session-f                 #(assoc % :session {})
+  ;                                      :remove-user-account-f          #(my-database/remove-user-account!                                user-id)
+  ;                                      :security-code-correct-f        #(my-database/security-code-matches?                              user-id security-code)
+  ;                                      :security-code-device-matches-f #(my-log-service/security-code-required-from-the-same-ip-address? user-id ip-address)
+  ;                                      :security-code-expired-f        #(my-database/security-code-expired?                              user-id)
+  ;                                      :security-code-sent-f           #(my-database/security-code-sent?                                 user-id)
+  ;                                      :security-code-valid-f          #(my-validator/security-code-valid?                               security-code)
+  ;                                      :send-goodbye-message-f         #(my-email-service/send-goodbye-email!                            user-id)
+  ;                                      :user-authenticated-f           #(my-validator/request-has-valid-session?                         request)
+  ;                                      :user-exists-f                  #(my-database/user-id-exists?                                     user-id)
+  ;                                      :user-password-correct-f        #(my-database/user-password-matches?                              user-password)
+  ;                                      :user-password-valid-f          #(my-validator/user-password-valid?                               user-password)
+  ;                                      :user-rate-limit-exceeded-f     #(my-log-service/too-many-attempts-by-user-id?                    user-id)})))
   ; =>
-  ; {:body :performed-request/user-account-removed :status 200}
+  ; {:body :performed-request/user-account-removed :status 200 :session {}}
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
@@ -379,8 +573,8 @@
   ;   (Invalid user password has been received),
   ;   :forbidden-request/no-security-code-sent-in-timeframe
   ;   (No security code has been sent in a specific timeframe),
-  ;   :forbidden-request/security-code-ip-address-not-matches
-  ;   (The received security code has been required from another IP address),
+  ;   :forbidden-request/security-code-device-not-matches
+  ;   (The received security code has been required from another device),
   ;   :forbidden-request/user-not-exists
   ;   (The user ID does not exist),
   ;   :forbidden-request/user-unauthenticated
@@ -406,22 +600,22 @@
   ;   :unauthorized-request/incorrect-user-password-received
   ;   (Incorrect user password has been received),
   ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value)
-  ;   :unknown-error/additional-check-stage-failed
-  ;   (The additional check function returned a false value)
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
   ;  :session (map)
-  ;   {}
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 500, 520}
   [request {:keys [additional-action-f
-                   additional-check-f
+                   additional-security-f
                    client-rate-limit-exceeded-f
+                   drop-session-f
                    remove-user-account-f
                    security-code-correct-f
+                   security-code-device-matches-f
                    security-code-expired-f
                    security-code-sent-f
                    security-code-valid-f
-                   security-code-ip-address-matches-f
                    send-goodbye-message-f
                    user-authenticated-f
                    user-exists-f
@@ -430,47 +624,50 @@
                    user-rate-limit-exceeded-f]}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
-       (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                     :status 400}
-             (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                     :status 400}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
-             (not (user-password-valid-f))                         {:body :forbidden-request/invalid-user-password-received       :status 403}
-             (not (security-code-valid-f))                         {:body :forbidden-request/invalid-security-code-received       :status 403}
-             (not (security-code-sent-f))                          {:body :forbidden-request/no-security-code-sent-in-timeframe   :status 403}
-             (not (security-code-ip-address-matches-f))            {:body :forbidden-request/security-code-ip-address-not-matches :status 403}
-             (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated                 :status 403}
-             (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists                      :status 403}
-             (not (user-password-correct-f))                       {:body :unauthorized-request/incorrect-user-password-received  :status 401}
-             (not (security-code-correct-f))                       {:body :unauthorized-request/incorrect-security-code-received  :status 401}
-             (boolean (security-code-expired-f))                   {:body :unauthorized-request/expired-security-code-received    :status 401}
-             (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed            :status 520}
-             (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed           :status 520}
-             (not (send-goodbye-message-f))                        {:body :server-error/unable-to-send-goodbye-message            :status 500}
-             (not (remove-user-account-f))                         {:body :server-error/unable-to-remove-user-account             :status 500}
-             :user-account-removed                                 {:body :performed-request/user-account-removed                 :status 200 :session {}})))
+       (cond (not (audit/ip-address-valid? ip-address))                  {:body :invalid-request/invalid-ip-address                    :status 400}
+             (not (audit/user-agent-valid? user-agent))                  {:body :invalid-request/invalid-user-agent                    :status 400}
+             (boolean (client-rate-limit-exceeded-f))                    {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
+             (boolean (user-rate-limit-exceeded-f))                      {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
+             (not (user-authenticated-f))                                {:body :forbidden-request/user-unauthenticated                :status 403}
+             (not (user-exists-f))                                       {:body :forbidden-request/user-not-exists                     :status 403}
+             (not (user-password-valid-f))                               {:body :forbidden-request/invalid-user-password-received      :status 403}
+             (not (security-code-valid-f))                               {:body :forbidden-request/invalid-security-code-received      :status 403}
+             (not (security-code-sent-f))                                {:body :forbidden-request/no-security-code-sent-in-timeframe  :status 403}
+             (not (security-code-device-matches-f))                      {:body :forbidden-request/security-code-device-not-matches    :status 403}
+             (not (user-password-correct-f))                             {:body :unauthorized-request/incorrect-user-password-received :status 401}
+             (not (security-code-correct-f))                             {:body :unauthorized-request/incorrect-security-code-received :status 401}
+             (boolean (security-code-expired-f))                         {:body :unauthorized-request/expired-security-code-received   :status 401}
+             (and additional-security-f  (not (additional-security-f)))  {:body :unknown-error/additional-security-stage-failed        :status 520}
+             (and additional-action-f    (not (additional-action-f)))    {:body :unknown-error/additional-action-stage-failed          :status 520}
+             (and send-goodbye-message-f (not (send-goodbye-message-f))) {:body :server-error/unable-to-send-goodbye-message           :status 500}
+             (not (remove-user-account-f))                               {:body :server-error/unable-to-remove-user-account            :status 500}
+             :user-account-removed                                       (drop-session-f {:body :performed-request/user-account-removed :status 200}))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
 (defn send-security-code-authenticated
   ; @description
-  ; Security protocol function for sending a security code via email or SMS to an authenticated (logged-in) user.
-  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ; - Security protocol function for sending a security code via email / SMS to an authenticated (logged-in) user.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
   ;   Custom side-effect function that is applied if no security check has been failed.
   ;   Must return TRUE in case of successful execution.
-  ;  :additional-check-f (function)(opt)
+  ;  :additional-security-f (function)(opt)
   ;   Custom security function that is applied after the built-in security checks.
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
   ;  :send-security-code-f (function)
+  ;   Side-effect function for sending the security code to the user, applied after and if every security check passed.
   ;   Must return TRUE if the security code email / SMS has been successfully sent.
   ;  :user-authenticated-f (function)
-  ;   Must return TRUE the request contains an authenticated / logged in user session.
+  ;   Must return TRUE the user is authenticated / logged in.
   ;  :user-exists-f (function)
   ;   Must return TRUE the user exists.
   ;  :user-rate-limit-exceeded-f (function)
@@ -516,13 +713,13 @@
   ;   :too-many-requests/user-rate-limit-exceeded
   ;   (Too many actions has been attempted by the user in a specific timeframe),
   ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value)
-  ;   :unknown-error/additional-check-stage-failed
-  ;   (The additional check function returned a false value)
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 403, 429, 500, 520}
   [request {:keys [additional-action-f
-                   additional-check-f
+                   additional-security-f
                    client-rate-limit-exceeded-f
                    send-security-code-f
                    user-authenticated-f
@@ -530,43 +727,49 @@
                    user-rate-limit-exceeded-f]}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
-       (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address           :status 400}
-             (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent           :status 400}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded   :status 429}
-             (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated       :status 403}
-             (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists            :status 403}
-             (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed  :status 520}
-             (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed :status 520}
-             (not (send-security-code-f))                          {:body :server-error/unable-to-send-security-code    :status 500}
-             :security-code-sent                                   {:body :performed-request/security-code-sent         :status 200})))
+       (cond (not (audit/ip-address-valid? ip-address))                {:body :invalid-request/invalid-ip-address             :status 400}
+             (not (audit/user-agent-valid? user-agent))                {:body :invalid-request/invalid-user-agent             :status 400}
+             (boolean (client-rate-limit-exceeded-f))                  {:body :too-many-requests/client-rate-limit-exceeded   :status 429}
+             (boolean (user-rate-limit-exceeded-f))                    {:body :too-many-requests/user-rate-limit-exceeded     :status 429}
+             (not (user-authenticated-f))                              {:body :forbidden-request/user-unauthenticated         :status 403}
+             (not (user-exists-f))                                     {:body :forbidden-request/user-not-exists              :status 403}
+             (and additional-security-f (not (additional-security-f))) {:body :unknown-error/additional-security-stage-failed :status 520}
+             (and additional-action-f   (not (additional-action-f)))   {:body :unknown-error/additional-action-stage-failed   :status 520}
+             (not (send-security-code-f))                              {:body :server-error/unable-to-send-security-code      :status 500}
+             :security-code-sent                                       {:body :performed-request/security-code-sent           :status 200})))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
 (defn send-security-code-unauthenticated
   ; @description
-  ; Security protocol function for sending a security code via email or SMS to an unauthenticated (not logged-in) user.
-  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ; - Security protocol function for sending a security code via email / SMS to an unauthenticated (not logged-in) user.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
   ;   Custom side-effect function that is applied if no security check has been failed.
   ;   Must return TRUE in case of successful execution.
-  ;  :additional-check-f (function)(opt)
+  ;  :additional-security-f (function)(opt)
   ;   Custom security function that is applied after the built-in security checks.
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
   ;  :send-security-code-f (function)
+  ;   Side-effect function for sending the security code to the user, applied after and if every security check passed.
   ;   Must return TRUE if the security code email / SMS has been successfully sent.
   ;  :user-authenticated-f (function)
-  ;   Must return TRUE the request contains an authenticated / logged in user session.
-  ;  :user-contact-registered-f (function)
-  ;   Must return TRUE if the received email address / phone number is registered.
-  ;  :user-contact-valid-f (function)
-  ;   Must return TRUE if the received email address / phone number is valid.
+  ;   Must return TRUE the user is authenticated / logged in.
+  ;  :user-identifier-registered-f (function)
+  ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
+  ;  :user-identifier-valid-f (function)
+  ;   Must return TRUE if the received user identifier (email address / phone number / username) is valid.
+  ;  :user-identifier-verified-f (function)(opt)
+  ;   Optional function for checking a user identifier (if contact: email address / phone number) whether it is verified.
+  ;   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
   ;  :user-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
@@ -584,20 +787,23 @@
   ;   (let [ip-address    (-> request :remote-addr)
   ;         email-address (-> request :params :email-address)]
   ;        (send-security-code-unauthenticated request {:client-rate-limit-exceeded-f #(my-log-service/too-many-attempts-by-ip-address?    ip-address)
-  ;                                                     :user-authenticated-f         #(my-validator/request-has-valid-session?            request)
-  ;                                                     :user-contact-registered-f    #(my-database/email-address-registered?              email-address)
-  ;                                                     :user-contact-valid-f         #(my-validator/email-address-valid?                  email-address)
   ;                                                     :send-security-code-f         #(my-email-service/send-security-code-email!         email-address)
+  ;                                                     :user-authenticated-f         #(my-validator/request-has-valid-session?            request)
+  ;                                                     :user-identifier-registered-f #(my-database/email-address-registered?              email-address)
+  ;                                                     :user-identifier-valid-f      #(my-validator/email-address-valid?                  email-address)
+  ;                                                     :user-identifier-verified-f   #(my-database/email-address-verified?                email-address)
   ;                                                     :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-email-address? email-address)})))
   ; =>
   ; {:body :performed-request/security-code-sent :status 200}
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-user-contact-received
-  ;   (Invalid email address / phone number has been received),
-  ;   :forbidden-request/unregistered-user-contact-received
-  ;   (Unregistered email address / phone number has been received),
+  ;   :forbidden-request/invalid-user-identifier-received
+  ;   (Invalid user identifier (email address / phone number / username) has been received),
+  ;   :forbidden-request/unregistered-user-identifier-received
+  ;   (Unregistered user identifier (email address / phone number / username) has been received),
+  ;   :forbidden-request/unverified-user-identifier-received
+  ;   (Unverified user identifier (if contact: email address / phone number) has been received),
   ;   :forbidden-request/user-authenticated
   ;   (The user is authenticated / logged in),
   ;   :invalid-request/invalid-ip-address
@@ -613,213 +819,60 @@
   ;   :too-many-requests/user-rate-limit-exceeded
   ;   (Too many actions has been attempted by the user in a specific timeframe),
   ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value)
-  ;   :unknown-error/additional-check-stage-failed
-  ;   (The additional check function returned a false value)
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 403, 429, 500, 520}
   [request {:keys [additional-action-f
-                   additional-check-f
+                   additional-security-f
                    client-rate-limit-exceeded-f
                    send-security-code-f
                    user-authenticated-f
-                   user-contact-registered-f
-                   user-contact-valid-f
+                   user-identifier-registered-f
+                   user-identifier-valid-f
+                   user-identifier-verified-f
                    user-rate-limit-exceeded-f]}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
-       (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                   :status 400}
-             (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                   :status 400}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded         :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded           :status 429}
-             (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received      :status 403}
-             (not (user-contact-registered-f))                     {:body :forbidden-request/unregistered-user-contact-received :status 403}
-             (boolean (user-authenticated-f))                      {:body :forbidden-request/user-authenticated                 :status 403}
-             (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed          :status 520}
-             (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed         :status 520}
-             (not (send-security-code-f))                          {:body :server-error/unable-to-send-security-code            :status 500}
-             :security-code-sent                                   {:body :performed-request/security-code-sent                 :status 200})))
-
-;; ----------------------------------------------------------------------------
-;; ----------------------------------------------------------------------------
-
-(defn update-user-contact
-  ; @description
-  ; Security protocol function for a user account's email address or phone number update that requires a user password and security code verification.
-  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
-  ;
-  ; @param (map) request
-  ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-check-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :security-code-correct-f (function)
-  ;   Must return TRUE if the received security code is correct.
-  ;  :security-code-expired-f (function)
-  ;   Must return TRUE if the received security code has been expired.
-  ;  :security-code-ip-address-matches-f (function)
-  ;   Must return TRUE if the received security code has been required from the same IP address.
-  ;  :security-code-sent-f (function)
-  ;   Must return TRUE if a security code has been sent.
-  ;  :security-code-valid-f (function)
-  ;   Must return TRUE if the received security code is valid.
-  ;  :update-user-contact-f (function)
-  ;   Must return TRUE if the user's email address / phone number has been successfully updated.
-  ;  :user-authenticated-f (function)
-  ;   Must return TRUE the request contains an authenticated / logged in user session.
-  ;  :user-contact-registered-f (function)
-  ;   Must return TRUE if the received email address / phone number is registered.
-  ;  :user-contact-valid-f (function)
-  ;   Must return TRUE if the received email address / phone number is valid.
-  ;  :user-exists-f (function)
-  ;   Must return TRUE the user exists.
-  ;  :user-password-correct-f (function)
-  ;   Must return TRUE if the received user password matches the stored one.
-  ;  :user-password-valid-f (function)
-  ;   Must return TRUE if the received user password is valid.
-  ;  :user-rate-limit-exceeded-f (function)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
-  ;
-  ; @usage
-  ; (update-user-contact {...} {...})
-  ;
-  ; @example
-  ; (update-user-contact {...} {...})
-  ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
-  ;
-  ; @example
-  ; (defn my-route
-  ;   [request]
-  ;   (let [ip-address    (-> request :remote-addr)
-  ;         email-address (-> request :params :email-address)
-  ;         user-password (-> request :params :password)
-  ;         security-code (-> request :params :security-code)
-  ;         user-id       (-> request :session :user-id)]
-  ;        (update-user-contact request {:client-rate-limit-exceeded-f       #(my-log-service/too-many-attempts-by-ip-address?                 ip-address)
-  ;                                      :security-code-expired-f            #(my-database/security-code-expired?                              user-id)
-  ;                                      :security-code-ip-address-matches-f #(my-log-service/security-code-required-from-the-same-ip-address? user-id ip-address)
-  ;                                      :security-code-sent-f               #(my-database/security-code-sent?                                 user-id)
-  ;                                      :security-code-valid-f              #(my-validator/security-code-valid?                               security-code)
-  ;                                      :update-user-contact-f              #(my-database/update-user-email-address!                          user-id email-address)
-  ;                                      :user-contact-registered-f          #(my-database/email-address-registered?                           email-address)
-  ;                                      :user-contact-valid-f               #(my-validator/email-address-valid?                               email-address)
-  ;                                      :user-password-correct-f            #(my-database/user-password-matches?                              user-password)
-  ;                                      :user-password-valid-f              #(my-validator/user-password-valid?                               user-password)
-  ;                                      :security-code-correct-f            #(my-database/security-code-matches?                              user-id security-code)
-  ;                                      :user-authenticated-f               #(my-validator/request-has-valid-session?                         request)
-  ;                                      :user-exists-f                      #(my-database/user-id-exists?                                     user-id)
-  ;                                      :user-rate-limit-exceeded-f         #(my-log-service/too-many-attempts-by-user-id?                    user-id)})))
-  ; =>
-  ; {:body :performed-request/user-contact-updated :status 200}
-  ;
-  ; @return (map)
-  ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-user-contact-received
-  ;   (Invalid email address / phone number has been received),
-  ;   :forbidden-request/invalid-security-code-received
-  ;   (Invalid security code has been received),
-  ;   :forbidden-request/invalid-user-password-received
-  ;   (Invalid user password has been received),
-  ;   :forbidden-request/no-security-code-sent-in-timeframe
-  ;   (No security code has been sent in a specific timeframe),
-  ;   :forbidden-request/registered-user-contact-received
-  ;   (Registered email address /phone number has been received),
-  ;   :forbidden-request/security-code-ip-address-not-matches
-  ;   (The received security code has been required from another IP address),
-  ;   :forbidden-request/user-not-exists
-  ;   (The user ID does not exist),
-  ;   :forbidden-request/user-unauthenticated
-  ;   (The user is unauthenticated / not logged in),
-  ;   :invalid-request/invalid-ip-address
-  ;   (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent
-  ;   (No valid user agent has been found in the request),
-  ;   :performed-request/user-contact-updated
-  ;   (The server has been successfully updated the user's email address / phone number),
-  ;   :server-error/unable-to-update-user-contact
-  ;   (The server cannot update the user's email address / phone number),
-  ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
-  ;   :unauthorized-request/expired-security-code-received
-  ;   (Expired security code has been received),
-  ;   :unauthorized-request/incorrect-security-code-received
-  ;   (Incorrect security code has been received),
-  ;   :unauthorized-request/incorrect-user-password-received
-  ;   (Incorrect user password has been received),
-  ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value)
-  ;   :unknown-error/additional-check-stage-failed
-  ;   (The additional check function returned a false value)
-  ;  :status (integer)
-  ;   200, 400, 401, 403, 429, 500, 520}
-  [request {:keys [additional-action-f
-                   additional-check-f
-                   client-rate-limit-exceeded-f
-                   security-code-correct-f
-                   security-code-expired-f
-                   security-code-sent-f
-                   security-code-valid-f
-                   security-code-ip-address-matches-f
-                   update-user-contact-f
-                   user-authenticated-f
-                   user-contact-registered-f
-                   user-contact-valid-f
-                   user-exists-f
-                   user-password-correct-f
-                   user-password-valid-f
-                   user-rate-limit-exceeded-f]}]
-  (let [ip-address (http/request->ip-address request)
-        user-agent (http/request->user-agent request)]
-       (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                     :status 400}
-             (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                     :status 400}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
-             (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received        :status 403}
-             (not (user-password-valid-f))                         {:body :forbidden-request/invalid-user-password-received       :status 403}
-             (not (security-code-valid-f))                         {:body :forbidden-request/invalid-security-code-received       :status 403}
-             (boolean (user-contact-registered-f))                 {:body :forbidden-request/registered-user-contact-received     :status 403}
-             (not (security-code-sent-f))                          {:body :forbidden-request/no-security-code-sent-in-timeframe   :status 403}
-             (not (security-code-ip-address-matches-f))            {:body :forbidden-request/security-code-ip-address-not-matches :status 403}
-             (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated                 :status 403}
-             (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists                      :status 403}
-             (not (user-password-correct-f))                       {:body :unauthorized-request/incorrect-user-password-received  :status 401}
-             (not (security-code-correct-f))                       {:body :unauthorized-request/incorrect-security-code-received  :status 401}
-             (boolean (security-code-expired-f))                   {:body :unauthorized-request/expired-security-code-received    :status 401}
-             (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed            :status 520}
-             (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed           :status 520}
-             (not (update-user-contact-f))                         {:body :server-error/unable-to-update-user-contact             :status 500}
-             :user-contact-updated                                 {:body :performed-request/user-contact-updated                 :status 200})))
+       (cond (not (audit/ip-address-valid? ip-address))                          {:body :invalid-request/invalid-ip-address                      :status 400}
+             (not (audit/user-agent-valid? user-agent))                          {:body :invalid-request/invalid-user-agent                      :status 400}
+             (boolean (client-rate-limit-exceeded-f))                            {:body :too-many-requests/client-rate-limit-exceeded            :status 429}
+             (boolean (user-rate-limit-exceeded-f))                              {:body :too-many-requests/user-rate-limit-exceeded              :status 429}
+             (boolean (user-authenticated-f))                                    {:body :forbidden-request/user-authenticated                    :status 403}
+             (not (user-identifier-valid-f))                                     {:body :forbidden-request/invalid-user-identifier-received      :status 403}
+             (not (user-identifier-registered-f))                                {:body :forbidden-request/unregistered-user-identifier-received :status 403}
+             (and user-identifier-verified-f (not (user-identifier-verified-f))) {:body :forbidden-request/unverified-user-identifier-received   :status 403}
+             (and additional-security-f      (not (additional-security-f)))      {:body :unknown-error/additional-security-stage-failed          :status 520}
+             (and additional-action-f        (not (additional-action-f)))        {:body :unknown-error/additional-action-stage-failed            :status 520}
+             (not (send-security-code-f))                                        {:body :server-error/unable-to-send-security-code               :status 500}
+             :security-code-sent                                                 {:body :performed-request/security-code-sent                    :status 200})))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
 (defn update-user-account
   ; @description
-  ; Security protocol function for updating a user account.
-  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ; - Security protocol function for updating a user account.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
   ;   Custom side-effect function that is applied if no security check has been failed.
   ;   Must return TRUE in case of successful execution.
-  ;  :additional-check-f (function)(opt)
+  ;  :additional-security-f (function)(opt)
   ;   Custom security function that is applied after the built-in security checks.
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
   ;  :update-user-account-f (function)
+  ;   Side-effect function for updating the user account, applied after and if every security check passed.
   ;   Must return TRUE if the user account has been successfully updated.
   ;  :user-authenticated-f (function)
-  ;   Must return TRUE the request contains an authenticated / logged in user session.
+  ;   Must return TRUE the user is authenticated / logged in.
   ;  :user-data-valid-f (function)
   ;   Must return TRUE if the received user data is valid.
   ;  :user-exists-f (function)
@@ -871,13 +924,13 @@
   ;   :too-many-requests/user-rate-limit-exceeded
   ;   (Too many actions has been attempted by the user in a specific timeframe),
   ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value)
-  ;   :unknown-error/additional-check-stage-failed
-  ;   (The additional check function returned a false value)
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 403, 429, 500, 520}
   [request {:keys [additional-action-f
-                   additional-check-f
+                   additional-security-f
                    client-rate-limit-exceeded-f
                    update-user-account-f
                    user-authenticated-f
@@ -886,46 +939,491 @@
                    user-rate-limit-exceeded-f]}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
-       (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address           :status 400}
-             (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent           :status 400}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded   :status 429}
-             (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated       :status 403}
-             (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists            :status 403}
-             (not (user-data-valid-f))                             {:body :forbidden-request/invalid-user-data-received :status 403}
-             (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed  :status 520}
-             (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed :status 520}
-             (not (update-user-account-f))                         {:body :server-error/unable-to-update-user-account   :status 500}
-             :user-account-updated                                 {:body :performed-request/user-account-updated       :status 200})))
+       (cond (not (audit/ip-address-valid? ip-address))                {:body :invalid-request/invalid-ip-address             :status 400}
+             (not (audit/user-agent-valid? user-agent))                {:body :invalid-request/invalid-user-agent             :status 400}
+             (boolean (client-rate-limit-exceeded-f))                  {:body :too-many-requests/client-rate-limit-exceeded   :status 429}
+             (boolean (user-rate-limit-exceeded-f))                    {:body :too-many-requests/user-rate-limit-exceeded     :status 429}
+             (not (user-authenticated-f))                              {:body :forbidden-request/user-unauthenticated         :status 403}
+             (not (user-exists-f))                                     {:body :forbidden-request/user-not-exists              :status 403}
+             (not (user-data-valid-f))                                 {:body :forbidden-request/invalid-user-data-received   :status 403}
+             (and additional-security-f (not (additional-security-f))) {:body :unknown-error/additional-security-stage-failed :status 520}
+             (and additional-action-f   (not (additional-action-f)))   {:body :unknown-error/additional-action-stage-failed   :status 520}
+             (not (update-user-account-f))                             {:body :server-error/unable-to-update-user-account     :status 500}
+             :user-account-updated                                     {:body :performed-request/user-account-updated         :status 200})))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-(defn verify-security-code-authenticated
+(defn update-user-contact
   ; @description
-  ; Security protocol function for verifying a security code sent via email or SMS to an authenticated (logged-in) user.
-  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ; - Security protocol function for updating a user contact (email address / phone number) with password and security code verification.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
   ;   Custom side-effect function that is applied if no security check has been failed.
   ;   Must return TRUE in case of successful execution.
-  ;  :additional-check-f (function)(opt)
+  ;  :additional-security-f (function)(opt)
   ;   Custom security function that is applied after the built-in security checks.
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
   ;  :security-code-correct-f (function)
   ;   Must return TRUE if the received security code is correct.
-  ;  :security-code-ip-address-matches-f (function)
-  ;   Must return TRUE if the received security code has been required from the same IP address.
+  ;  :security-code-device-matches-f (function)
+  ;   Must return TRUE if the received security code has been required from the same device.
+  ;  :security-code-expired-f (function)
+  ;   Must return TRUE if the received security code has been expired.
+  ;  :security-code-sent-f (function)
+  ;   Must return TRUE if a security code has been sent.
+  ;  :security-code-valid-f (function)
+  ;   Must return TRUE if the received security code is valid.
+  ;  :update-user-contact-f (function)
+  ;   Side-effect function for updating the user contact, applied after and if every security check passed.
+  ;   Must return TRUE if the user contact (email address / phone number) has been successfully updated.
+  ;  :user-authenticated-f (function)
+  ;   Must return TRUE the user is authenticated / logged in.
+  ;  :user-contact-registered-f (function)
+  ;   Must return TRUE if the received user contact (email address / phone number) is registered.
+  ;  :user-contact-valid-f (function)
+  ;   Must return TRUE if the received user contact (email address / phone number) is valid.
+  ;  :user-exists-f (function)
+  ;   Must return TRUE the user exists.
+  ;  :user-password-correct-f (function)
+  ;   Must return TRUE if the received user password is correct.
+  ;  :user-password-valid-f (function)
+  ;   Must return TRUE if the received user password is valid.
+  ;  :user-rate-limit-exceeded-f (function)
+  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ;
+  ; @usage
+  ; (update-user-contact {...} {...})
+  ;
+  ; @example
+  ; (update-user-contact {...} {...})
+  ; =>
+  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ;
+  ; @example
+  ; (defn my-route
+  ;   [request]
+  ;   (let [ip-address    (-> request :remote-addr)
+  ;         email-address (-> request :params :email-address)
+  ;         user-password (-> request :params :password)
+  ;         security-code (-> request :params :security-code)
+  ;         user-id       (-> request :session :user-id)]
+  ;        (update-user-contact request {:client-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-ip-address?                 ip-address)
+  ;                                      :security-code-correct-f        #(my-database/security-code-matches?                              user-id security-code)
+  ;                                      :security-code-device-matches-f #(my-log-service/security-code-required-from-the-same-ip-address? user-id ip-address)
+  ;                                      :security-code-expired-f        #(my-database/security-code-expired?                              user-id)
+  ;                                      :security-code-sent-f           #(my-database/security-code-sent?                                 user-id)
+  ;                                      :security-code-valid-f          #(my-validator/security-code-valid?                               security-code)
+  ;                                      :update-user-contact-f          #(my-database/update-user-email-address!                          user-id email-address)
+  ;                                      :user-authenticated-f           #(my-validator/request-has-valid-session?                         request)
+  ;                                      :user-contact-registered-f      #(my-database/email-address-registered?                           email-address)
+  ;                                      :user-contact-valid-f           #(my-validator/email-address-valid?                               email-address)
+  ;                                      :user-exists-f                  #(my-database/user-id-exists?                                     user-id)
+  ;                                      :user-password-correct-f        #(my-database/user-password-matches?                              user-password)
+  ;                                      :user-password-valid-f          #(my-validator/user-password-valid?                               user-password)
+  ;                                      :user-rate-limit-exceeded-f     #(my-log-service/too-many-attempts-by-user-id?                    user-id)})))
+  ; =>
+  ; {:body :performed-request/user-contact-updated :status 200}
+  ;
+  ; @return (map)
+  ; {:body (namespaced keyword)
+  ;   :forbidden-request/invalid-user-contact-received
+  ;   (Invalid user contact (email address / phone number) has been received),
+  ;   :forbidden-request/invalid-security-code-received
+  ;   (Invalid security code has been received),
+  ;   :forbidden-request/invalid-user-password-received
+  ;   (Invalid user password has been received),
+  ;   :forbidden-request/no-security-code-sent-in-timeframe
+  ;   (No security code has been sent in a specific timeframe),
+  ;   :forbidden-request/registered-user-contact-received
+  ;   (Registered user contact (email address / phone number) has been received),
+  ;   :forbidden-request/security-code-device-not-matches
+  ;   (The received security code has been required from another device),
+  ;   :forbidden-request/user-not-exists
+  ;   (The user ID does not exist),
+  ;   :forbidden-request/user-unauthenticated
+  ;   (The user is unauthenticated / not logged in),
+  ;   :invalid-request/invalid-ip-address
+  ;   (No valid IP address has been found in the request),
+  ;   :invalid-request/invalid-user-agent
+  ;   (No valid user agent has been found in the request),
+  ;   :performed-request/user-contact-updated
+  ;   (The server has been successfully updated the user's email address / phone number),
+  ;   :server-error/unable-to-update-user-contact
+  ;   (The server cannot update the user's email address / phone number),
+  ;   :too-many-requests/client-rate-limit-exceeded
+  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   :too-many-requests/user-rate-limit-exceeded
+  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   :unauthorized-request/expired-security-code-received
+  ;   (Expired security code has been received),
+  ;   :unauthorized-request/incorrect-security-code-received
+  ;   (Incorrect security code has been received),
+  ;   :unauthorized-request/incorrect-user-password-received
+  ;   (Incorrect user password has been received),
+  ;   :unknown-error/additional-action-stage-failed
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
+  ;  :status (integer)
+  ;   200, 400, 401, 403, 429, 500, 520}
+  [request {:keys [additional-action-f
+                   additional-security-f
+                   client-rate-limit-exceeded-f
+                   security-code-correct-f
+                   security-code-device-matches-f
+                   security-code-expired-f
+                   security-code-sent-f
+                   security-code-valid-f
+                   update-user-contact-f
+                   user-authenticated-f
+                   user-contact-registered-f
+                   user-contact-valid-f
+                   user-exists-f
+                   user-password-correct-f
+                   user-password-valid-f
+                   user-rate-limit-exceeded-f]}]
+  (let [ip-address (http/request->ip-address request)
+        user-agent (http/request->user-agent request)]
+       (cond (not (audit/ip-address-valid? ip-address))                {:body :invalid-request/invalid-ip-address                    :status 400}
+             (not (audit/user-agent-valid? user-agent))                {:body :invalid-request/invalid-user-agent                    :status 400}
+             (boolean (client-rate-limit-exceeded-f))                  {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
+             (boolean (user-rate-limit-exceeded-f))                    {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
+             (not (user-authenticated-f))                              {:body :forbidden-request/user-unauthenticated                :status 403}
+             (not (user-exists-f))                                     {:body :forbidden-request/user-not-exists                     :status 403}
+             (not (user-password-valid-f))                             {:body :forbidden-request/invalid-user-password-received      :status 403}
+             (not (user-contact-valid-f))                              {:body :forbidden-request/invalid-user-contact-received       :status 403}
+             (not (security-code-valid-f))                             {:body :forbidden-request/invalid-security-code-received      :status 403}
+             (boolean (user-contact-registered-f))                     {:body :forbidden-request/registered-user-contact-received    :status 403}
+             (not (security-code-sent-f))                              {:body :forbidden-request/no-security-code-sent-in-timeframe  :status 403}
+             (not (security-code-device-matches-f))                    {:body :forbidden-request/security-code-device-not-matches    :status 403}
+             (not (user-password-correct-f))                           {:body :unauthorized-request/incorrect-user-password-received :status 401}
+             (not (security-code-correct-f))                           {:body :unauthorized-request/incorrect-security-code-received :status 401}
+             (boolean (security-code-expired-f))                       {:body :unauthorized-request/expired-security-code-received   :status 401}
+             (and additional-security-f (not (additional-security-f))) {:body :unknown-error/additional-security-stage-failed        :status 520}
+             (and additional-action-f   (not (additional-action-f)))   {:body :unknown-error/additional-action-stage-failed          :status 520}
+             (not (update-user-contact-f))                             {:body :server-error/unable-to-update-user-contact            :status 500}
+             :user-contact-updated                                     {:body :performed-request/user-contact-updated                :status 200})))
+
+;; ----------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+
+(defn update-user-password
+  ; @description
+  ; - Security protocol function for user account password update with user password and security code verification.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ;
+  ; @param (map) request
+  ; @param (map) functions
+  ; {:additional-action-f (function)(opt)
+  ;   Custom side-effect function that is applied if no security check has been failed.
+  ;   Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)
+  ;   Custom security function that is applied after the built-in security checks.
+  ;   Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)
+  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :fresh-password-valid-f (function)
+  ;   Must return TRUE if the received fresh password is valid.
+  ;  :security-code-correct-f (function)
+  ;   Must return TRUE if the received security code is correct.
+  ;  :security-code-device-matches-f (function)
+  ;   Must return TRUE if the received security code has been required from the same device.
+  ;  :security-code-expired-f (function)
+  ;   Must return TRUE if the received security code has been expired.
+  ;  :security-code-sent-f (function)
+  ;   Must return TRUE if a security code has been sent.
+  ;  :security-code-valid-f (function)
+  ;   Must return TRUE if the received security code is valid.
+  ;  :update-user-password-f (function)
+  ;   Side-effect function for updating the user's password, applied after and if every security check passed.
+  ;   Must return TRUE if the user's password has been successfully updated.
+  ;  :user-authenticated-f (function)
+  ;   Must return TRUE the user is authenticated / logged in.
+  ;  :user-exists-f (function)
+  ;   Must return TRUE the user exists.
+  ;  :user-password-correct-f (function)
+  ;   Must return TRUE if the received user password is correct.
+  ;  :user-password-valid-f (function)
+  ;   Must return TRUE if the received user password is valid.
+  ;  :user-rate-limit-exceeded-f (function)
+  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ;
+  ; @usage
+  ; (update-user-password {...} {...})
+  ;
+  ; @example
+  ; (update-user-password {...} {...})
+  ; =>
+  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ;
+  ; @example
+  ; (defn my-route
+  ;   [request]
+  ;   (let [ip-address     (-> request :remote-addr)
+  ;         user-password  (-> request :params :password)
+  ;         fresh-password (-> request :params :fresh-password)
+  ;         security-code  (-> request :params :security-code)
+  ;         user-id        (-> request :session :user-id)]
+  ;        (update-user-password request {:client-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-ip-address?                 ip-address)
+  ;                                       :fresh-password-valid-f         #(my-validator/user-password-valid?                               fresh-password)
+  ;                                       :security-code-correct-f        #(my-database/security-code-matches?                              user-id security-code)
+  ;                                       :security-code-device-matches-f #(my-log-service/security-code-required-from-the-same-ip-address? user-id ip-address)
+  ;                                       :security-code-expired-f        #(my-database/security-code-expired?                              user-id)
+  ;                                       :security-code-sent-f           #(my-database/security-code-sent?                                 user-id)
+  ;                                       :security-code-valid-f          #(my-validator/security-code-valid?                               security-code)
+  ;                                       :update-user-password-f         #(my-database/update-user-password!                               user-id fresh-password)
+  ;                                       :user-authenticated-f           #(my-validator/request-has-valid-session?                         request)
+  ;                                       :user-exists-f                  #(my-database/user-id-exists?                                     user-id)
+  ;                                       :user-password-correct-f        #(my-database/user-password-matches?                              user-password)
+  ;                                       :user-password-valid-f          #(my-validator/user-password-valid?                               user-password)
+  ;                                       :user-rate-limit-exceeded-f     #(my-log-service/too-many-attempts-by-user-id?                    user-id)})))
+  ; =>
+  ; {:body :performed-request/user-password-updated :status 200}
+  ;
+  ; @return (map)
+  ; {:body (namespaced keyword)
+  ;   :forbidden-request/invalid-fresh-password-received
+  ;   (Invalid fresh password has been received),
+  ;   :forbidden-request/invalid-security-code-received
+  ;   (Invalid security code has been received),
+  ;   :forbidden-request/invalid-user-password-received
+  ;   (Invalid user password has been received),
+  ;   :forbidden-request/no-security-code-sent-in-timeframe
+  ;   (No security code has been sent in a specific timeframe),
+  ;   :forbidden-request/security-code-device-not-matches
+  ;   (The received security code has been required from another device),
+  ;   :forbidden-request/user-not-exists
+  ;   (The user ID does not exist),
+  ;   :forbidden-request/user-unauthenticated
+  ;   (The user is unauthenticated / not logged in),
+  ;   :invalid-request/invalid-ip-address
+  ;   (No valid IP address has been found in the request),
+  ;   :invalid-request/invalid-user-agent
+  ;   (No valid user agent has been found in the request),
+  ;   :performed-request/user-password-updated
+  ;   (The server has been successfully updated the user's password),
+  ;   :server-error/unable-to-update-user-password
+  ;   (The server cannot update the user's password),
+  ;   :too-many-requests/client-rate-limit-exceeded
+  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   :too-many-requests/user-rate-limit-exceeded
+  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   :unauthorized-request/expired-security-code-received
+  ;   (Expired security code has been received),
+  ;   :unauthorized-request/incorrect-security-code-received
+  ;   (Incorrect security code has been received),
+  ;   :unauthorized-request/incorrect-user-password-received
+  ;   (Incorrect user password has been received),
+  ;   :unknown-error/additional-action-stage-failed
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
+  ;  :status (integer)
+  ;   200, 400, 401, 403, 429, 500, 520}
+  [request {:keys [additional-action-f
+                   additional-security-f
+                   client-rate-limit-exceeded-f
+                   fresh-password-valid-f
+                   security-code-correct-f
+                   security-code-device-matches-f
+                   security-code-expired-f
+                   security-code-sent-f
+                   security-code-valid-f
+                   update-user-password-f
+                   user-authenticated-f
+                   user-exists-f
+                   user-password-correct-f
+                   user-password-valid-f
+                   user-rate-limit-exceeded-f]}]
+  (let [ip-address (http/request->ip-address request)
+        user-agent (http/request->user-agent request)]
+       (cond (not (audit/ip-address-valid? ip-address))                {:body :invalid-request/invalid-ip-address                    :status 400}
+             (not (audit/user-agent-valid? user-agent))                {:body :invalid-request/invalid-user-agent                    :status 400}
+             (boolean (client-rate-limit-exceeded-f))                  {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
+             (boolean (user-rate-limit-exceeded-f))                    {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
+             (not (user-authenticated-f))                              {:body :forbidden-request/user-unauthenticated                :status 403}
+             (not (user-exists-f))                                     {:body :forbidden-request/user-not-exists                     :status 403}
+             (not (fresh-password-valid-f))                            {:body :forbidden-request/invalid-fresh-password-received     :status 403}
+             (not (user-password-valid-f))                             {:body :forbidden-request/invalid-user-password-received      :status 403}
+             (not (security-code-valid-f))                             {:body :forbidden-request/invalid-security-code-received      :status 403}
+             (not (security-code-sent-f))                              {:body :forbidden-request/no-security-code-sent-in-timeframe  :status 403}
+             (not (security-code-device-matches-f))                    {:body :forbidden-request/security-code-device-not-matches    :status 403}
+             (not (user-password-correct-f))                           {:body :unauthorized-request/incorrect-user-password-received :status 401}
+             (not (security-code-correct-f))                           {:body :unauthorized-request/incorrect-security-code-received :status 401}
+             (boolean (security-code-expired-f))                       {:body :unauthorized-request/expired-security-code-received   :status 401}
+             (and additional-security-f (not (additional-security-f))) {:body :unknown-error/additional-security-stage-failed        :status 520}
+             (and additional-action-f   (not (additional-action-f)))   {:body :unknown-error/additional-action-stage-failed          :status 520}
+             (not (update-user-password-f))                            {:body :server-error/unable-to-update-user-password           :status 500}
+             :user-password-updated                                    {:body :performed-request/user-password-updated               :status 200})))
+
+;; ----------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+
+(defn update-username
+  ; @description
+  ; - Security protocol function for updating a username with password verification.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ;
+  ; @param (map) request
+  ; @param (map) functions
+  ; {:additional-action-f (function)(opt)
+  ;   Custom side-effect function that is applied if no security check has been failed.
+  ;   Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)
+  ;   Custom security function that is applied after the built-in security checks.
+  ;   Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)
+  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :update-username-f (function)
+  ;   Side-effect function for updating the username, applied after and if every security check passed.
+  ;   Must return TRUE if the username has been successfully updated.
+  ;  :username-registered-f (function)
+  ;   Must return TRUE if the received username is registered.
+  ;  :username-valid-f (function)
+  ;   Must return TRUE if the received username is valid.
+  ;  :user-authenticated-f (function)
+  ;   Must return TRUE the user is authenticated / logged in.
+  ;  :user-exists-f (function)
+  ;   Must return TRUE the user exists.
+  ;  :user-password-correct-f (function)
+  ;   Must return TRUE if the received user password is correct.
+  ;  :user-password-valid-f (function)
+  ;   Must return TRUE if the received user password is valid.
+  ;  :user-rate-limit-exceeded-f (function)
+  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ;
+  ; @usage
+  ; (update-username {...} {...})
+  ;
+  ; @example
+  ; (update-username {...} {...})
+  ; =>
+  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ;
+  ; @example
+  ; (defn my-route
+  ;   [request]
+  ;   (let [ip-address    (-> request :remote-addr)
+  ;         username      (-> request :params :username)
+  ;         user-password (-> request :params :password)
+  ;         security-code (-> request :params :security-code)
+  ;         user-id       (-> request :session :user-id)]
+  ;        (update-username request {:client-rate-limit-exceeded-f #(my-log-service/too-many-attempts-by-ip-address? ip-address)
+  ;                                  :update-username-f            #(my-database/update-user-username!               user-id username)
+  ;                                  :username-registered-f        #(my-database/username-registered?                username)
+  ;                                  :username-valid-f             #(my-validator/username-valid?                    username)
+  ;                                  :user-authenticated-f         #(my-validator/request-has-valid-session?         request)
+  ;                                  :user-exists-f                #(my-database/user-id-exists?                     user-id)
+  ;                                  :user-password-correct-f      #(my-database/user-password-matches?              user-password)
+  ;                                  :user-password-valid-f        #(my-validator/user-password-valid?               user-password)
+  ;                                  :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-user-id?    user-id)})))
+  ; =>
+  ; {:body :performed-request/username-updated :status 200}
+  ;
+  ; @return (map)
+  ; {:body (namespaced keyword)
+  ;   :forbidden-request/invalid-username-received
+  ;   (Invalid username has been received),
+  ;   :forbidden-request/invalid-user-password-received
+  ;   (Invalid user password has been received),
+  ;   :forbidden-request/registered-username-received
+  ;   (Registered username has been received),
+  ;   :forbidden-request/user-not-exists
+  ;   (The user ID does not exist),
+  ;   :forbidden-request/user-unauthenticated
+  ;   (The user is unauthenticated / not logged in),
+  ;   :invalid-request/invalid-ip-address
+  ;   (No valid IP address has been found in the request),
+  ;   :invalid-request/invalid-user-agent
+  ;   (No valid user agent has been found in the request),
+  ;   :performed-request/username-updated
+  ;   (The server has been successfully updated the username),
+  ;   :server-error/unable-to-update-username
+  ;   (The server cannot update the username),
+  ;   :too-many-requests/client-rate-limit-exceeded
+  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   :too-many-requests/user-rate-limit-exceeded
+  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   :unauthorized-request/incorrect-user-password-received
+  ;   (Incorrect user password has been received),
+  ;   :unknown-error/additional-action-stage-failed
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
+  ;  :status (integer)
+  ;   200, 400, 401, 403, 429, 500, 520}
+  [request {:keys [additional-action-f
+                   additional-security-f
+                   client-rate-limit-exceeded-f
+                   update-username-f
+                   username-registered-f
+                   username-valid-f
+                   user-authenticated-f
+                   user-exists-f
+                   user-password-correct-f
+                   user-password-valid-f
+                   user-rate-limit-exceeded-f]}]
+  (let [ip-address (http/request->ip-address request)
+        user-agent (http/request->user-agent request)]
+       (cond (not (audit/ip-address-valid? ip-address))                {:body :invalid-request/invalid-ip-address                    :status 400}
+             (not (audit/user-agent-valid? user-agent))                {:body :invalid-request/invalid-user-agent                    :status 400}
+             (boolean (client-rate-limit-exceeded-f))                  {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
+             (boolean (user-rate-limit-exceeded-f))                    {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
+             (not (user-authenticated-f))                              {:body :forbidden-request/user-unauthenticated                :status 403}
+             (not (user-exists-f))                                     {:body :forbidden-request/user-not-exists                     :status 403}
+             (not (username-valid-f))                                  {:body :forbidden-request/invalid-username-received           :status 403}
+             (not (user-password-valid-f))                             {:body :forbidden-request/invalid-user-password-received      :status 403}
+             (boolean (username-registered-f))                         {:body :forbidden-request/registered-username-received        :status 403}
+             (not (user-password-correct-f))                           {:body :unauthorized-request/incorrect-user-password-received :status 401}
+             (and additional-security-f (not (additional-security-f))) {:body :unknown-error/additional-security-stage-failed        :status 520}
+             (and additional-action-f   (not (additional-action-f)))   {:body :unknown-error/additional-action-stage-failed          :status 520}
+             (not (update-username-f))                                 {:body :server-error/unable-to-update-username                :status 500}
+             :username-updated                                         {:body :performed-request/username-updated                    :status 200})))
+
+;; ----------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+
+(defn verify-security-code-authenticated
+  ; @description
+  ; - Security protocol function for verifying a security code sent via email / SMS to an authenticated (logged-in) user.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ;
+  ; @param (map) request
+  ; @param (map) functions
+  ; {:additional-action-f (function)(opt)
+  ;   Custom side-effect function that is applied if no security check has been failed.
+  ;   Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)
+  ;   Custom security function that is applied after the built-in security checks.
+  ;   Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)
+  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :security-code-correct-f (function)
+  ;   Must return TRUE if the received security code is correct.
+  ;  :security-code-device-matches-f (function)
+  ;   Must return TRUE if the received security code has been required from the same device.
+  ;  :security-code-expired-f (function)
+  ;   Must return TRUE if the received security code has been expired.
   ;  :security-code-sent-f (function)
   ;   Must return TRUE if a security code has been sent.
   ;  :security-code-valid-f (function)
   ;   Must return TRUE if the received security code is valid.
   ;  :user-authenticated-f (function)
-  ;   Must return TRUE the request contains an authenticated / logged in user session.
+  ;   Must return TRUE the user is authenticated / logged in.
   ;  :user-exists-f (function)
   ;   Must return TRUE the user exists.
   ;  :user-rate-limit-exceeded-f (function)
@@ -945,15 +1443,15 @@
   ;   (let [ip-address    (-> request :remote-addr)
   ;         security-code (-> request :params :security-code)
   ;         user-id       (-> request :session :user-id)]
-  ;        (verify-security-code-authenticated request {:client-rate-limit-exceeded-f       #(my-log-service/too-many-attempts-by-ip-address?                 ip-address)
-  ;                                                     :security-code-correct-f            #(my-database/security-code-matches?                              user-id security-code)
-  ;                                                     :security-code-expired-f            #(my-database/security-code-expired?                              user-id)
-  ;                                                     :security-code-ip-address-matches-f #(my-log-service/security-code-required-from-the-same-ip-address? user-id ip-address)
-  ;                                                     :security-code-sent-f               #(my-database/security-code-sent?                                 user-id)
-  ;                                                     :security-code-valid-f              #(my-validator/security-code-valid?                               security-code)
-  ;                                                     :user-authenticated-f               #(my-validator/request-has-valid-session?                         request)
-  ;                                                     :user-exists-f                      #(my-database/user-id-exists?                                     user-id)
-  ;                                                     :user-rate-limit-exceeded-f         #(my-log-service/too-many-attempts-by-user-id?                    user-id)})))
+  ;        (verify-security-code-authenticated request {:client-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-ip-address?                 ip-address)
+  ;                                                     :security-code-correct-f        #(my-database/security-code-matches?                              user-id security-code)
+  ;                                                     :security-code-expired-f        #(my-database/security-code-expired?                              user-id)
+  ;                                                     :security-code-device-matches-f #(my-log-service/security-code-required-from-the-same-ip-address? user-id ip-address)
+  ;                                                     :security-code-sent-f           #(my-database/security-code-sent?                                 user-id)
+  ;                                                     :security-code-valid-f          #(my-validator/security-code-valid?                               security-code)
+  ;                                                     :user-authenticated-f           #(my-validator/request-has-valid-session?                         request)
+  ;                                                     :user-exists-f                  #(my-database/user-id-exists?                                     user-id)
+  ;                                                     :user-rate-limit-exceeded-f     #(my-log-service/too-many-attempts-by-user-id?                    user-id)})))
   ; =>
   ; {:body :performed-request/correct-security-code-received :status 200}
   ;
@@ -963,8 +1461,8 @@
   ;   (Invalid security code has been received),
   ;   :forbidden-request/no-security-code-sent-in-timeframe
   ;   (No security code has been sent in a specific timeframe),
-  ;   :forbidden-request/security-code-ip-address-not-matches
-  ;   (The received security code has been required from another IP address),
+  ;   :forbidden-request/security-code-device-not-matches
+  ;   (The received security code has been required from another device),
   ;   :forbidden-request/user-not-exists
   ;   (The user ID does not exist),
   ;   :forbidden-request/user-unauthenticated
@@ -984,79 +1482,85 @@
   ;   :unauthorized-request/expired-security-code-received
   ;   (Expired security code has been received),
   ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value)
-  ;   :unknown-error/additional-check-stage-failed
-  ;   (The additional check function returned a false value)
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 520}
   [request {:keys [additional-action-f
-                   additional-check-f
+                   additional-security-f
                    client-rate-limit-exceeded-f
                    security-code-correct-f
+                   security-code-device-matches-f
                    security-code-expired-f
                    security-code-sent-f
                    security-code-valid-f
-                   security-code-ip-address-matches-f
                    user-authenticated-f
                    user-exists-f
                    user-rate-limit-exceeded-f]}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
-       (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                     :status 400}
-             (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                     :status 400}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
-             (not (security-code-valid-f))                         {:body :forbidden-request/invalid-security-code-received       :status 403}
-             (not (security-code-sent-f))                          {:body :forbidden-request/no-security-code-sent-in-timeframe   :status 403}
-             (not (security-code-ip-address-matches-f))            {:body :forbidden-request/security-code-ip-address-not-matches :status 403}
-             (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated                 :status 403}
-             (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists                      :status 403}
-             (not (security-code-correct-f))                       {:body :unauthorized-request/incorrect-security-code-received  :status 401}
-             (boolean (security-code-expired-f))                   {:body :unauthorized-request/expired-security-code-received    :status 401}
-             (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed            :status 520}
-             (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed           :status 520}
-             :security-code-verified                               {:body :performed-request/correct-security-code-received       :status 200})))
+       (cond (not (audit/ip-address-valid? ip-address))                {:body :invalid-request/invalid-ip-address                    :status 400}
+             (not (audit/user-agent-valid? user-agent))                {:body :invalid-request/invalid-user-agent                    :status 400}
+             (boolean (client-rate-limit-exceeded-f))                  {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
+             (boolean (user-rate-limit-exceeded-f))                    {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
+             (not (user-authenticated-f))                              {:body :forbidden-request/user-unauthenticated                :status 403}
+             (not (user-exists-f))                                     {:body :forbidden-request/user-not-exists                     :status 403}
+             (not (security-code-valid-f))                             {:body :forbidden-request/invalid-security-code-received      :status 403}
+             (not (security-code-sent-f))                              {:body :forbidden-request/no-security-code-sent-in-timeframe  :status 403}
+             (not (security-code-device-matches-f))                    {:body :forbidden-request/security-code-device-not-matches    :status 403}
+             (not (security-code-correct-f))                           {:body :unauthorized-request/incorrect-security-code-received :status 401}
+             (boolean (security-code-expired-f))                       {:body :unauthorized-request/expired-security-code-received   :status 401}
+             (and additional-security-f (not (additional-security-f))) {:body :unknown-error/additional-security-stage-failed        :status 520}
+             (and additional-action-f   (not (additional-action-f)))   {:body :unknown-error/additional-action-stage-failed          :status 520}
+             :security-code-verified                                   {:body :performed-request/correct-security-code-received      :status 200})))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
 (defn verify-security-code-unauthenticated
   ; @description
-  ; Security protocol function for verifying a security code sent via email or SMS to an unauthenticated (not logged-in) user.
-  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
-  ; In case of the 'provide-session-f' function is passed, no security check has been failed, and the received security code is correct,
-  ; then it applies the 'provide-session-f' function on the HTTP response.
+  ; - Security protocol function for verifying a security code sent via email / SMS to an unauthenticated (not logged-in) user.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ; - In case of the 'provide-session-f' function is passed, no security check has been failed, and the received security code is correct,
+  ;   it applies the 'provide-session-f' function on the HTTP response.
   ;
   ; @param (map) request
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
   ;   Custom side-effect function that is applied if no security check has been failed.
   ;   Must return TRUE in case of successful execution.
-  ;  :additional-check-f (function)(opt)
+  ;  :additional-security-f (function)(opt)
   ;   Custom security function that is applied after the built-in security checks.
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
   ;  :provide-session-f (function)(opt)
+  ;   Optional function for associating a user session to the HTTP response if no security check has been failed.
   ;   Must take the response as parameter, and associate a user session to it.
   ;  :security-code-correct-f (function)
   ;   Must return TRUE if the received security code is correct.
+  ;  :security-code-device-matches-f (function)
+  ;   Must return TRUE if the received security code has been required from the same device.
   ;  :security-code-expired-f (function)
   ;   Must return TRUE if the received security code has been expired.
-  ;  :security-code-ip-address-matches-f (function)
-  ;   Must return TRUE if the received security code has been required from the same IP address.
   ;  :security-code-sent-f (function)
   ;   Must return TRUE if a security code has been sent.
   ;  :security-code-valid-f (function)
   ;   Must return TRUE if the received security code is valid.
   ;  :user-authenticated-f (function)
-  ;   Must return TRUE the request contains an authenticated / logged in user session.
-  ;  :user-contact-registered-f (function)
-  ;   Must return TRUE if the received email address / phone number is registered.
-  ;  :user-contact-valid-f (function)
-  ;   Must return TRUE if the received email address / phone number is valid.
+  ;   Must return TRUE the user is authenticated / logged in.
+  ;  :user-identifier-registered-f (function)
+  ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
+  ;  :user-identifier-valid-f (function)
+  ;   Must return TRUE if the received user identifier (email address / phone number / username) is valid.
+  ;  :user-identifier-verified-f (function)(opt)
+  ;   Optional function for checking a user identifier (if contact: email address / phone number) whether it is verified.
+  ;   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
   ;  :user-password-correct-f (function)
-  ;   Must return TRUE if the received user password matches the stored one.
+  ;   Must return TRUE if the received user password is correct.
   ;  :user-password-valid-f (function)
   ;   Must return TRUE if the received user password is valid.
   ;  :user-rate-limit-exceeded-f (function)
@@ -1077,19 +1581,20 @@
   ;         email-address (-> request :params :email-address)
   ;         user-password (-> request :params :password)
   ;         security-code (-> request :params :security-code)]
-  ;        (verify-security-code-unauthenticated request {:client-rate-limit-exceeded-f       #(my-log-service/too-many-attempts-by-ip-address?                 ip-address)
-  ;                                                       :provide-session-f                  #(my-session-handler/add-session-to-response                      %)
-  ;                                                       :security-code-correct-f            #(my-database/security-code-matches?                              email-address security-code)
-  ;                                                       :security-code-expired-f            #(my-database/security-code-expired?                              email-address)
-  ;                                                       :security-code-ip-address-matches-f #(my-log-service/security-code-required-from-the-same-ip-address? email-address ip-address)
-  ;                                                       :security-code-sent-f               #(my-database/security-code-sent?                                 email-address)
-  ;                                                       :security-code-valid-f              #(my-validator/security-code-valid?                               security-code)
-  ;                                                       :user-authenticated-f               #(my-validator/request-has-valid-session?                         request)
-  ;                                                       :user-contact-registered-f          #(my-database/email-address-registered?                           email-address)
-  ;                                                       :user-contact-valid-f               #(my-validator/email-address-valid?                               email-address)
-  ;                                                       :user-password-correct-f            #(my-database/user-password-matches?                              user-password)
-  ;                                                       :user-password-valid-f              #(my-validator/user-password-valid?                               user-password)
-  ;                                                       :user-rate-limit-exceeded-f         #(my-log-service/too-many-attempts-by-email-address?              email-address)})))
+  ;        (verify-security-code-unauthenticated request {:client-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-ip-address?                 ip-address)
+  ;                                                       :provide-session-f              #(my-session-handler/add-session-to-response                      %)
+  ;                                                       :security-code-correct-f        #(my-database/security-code-matches?                              email-address security-code)
+  ;                                                       :security-code-device-matches-f #(my-log-service/security-code-required-from-the-same-ip-address? email-address ip-address)
+  ;                                                       :security-code-expired-f        #(my-database/security-code-expired?                              email-address)
+  ;                                                       :security-code-sent-f           #(my-database/security-code-sent?                                 email-address)
+  ;                                                       :security-code-valid-f          #(my-validator/security-code-valid?                               security-code)
+  ;                                                       :user-authenticated-f           #(my-validator/request-has-valid-session?                         request)
+  ;                                                       :user-identifier-registered-f   #(my-database/email-address-registered?                           email-address)
+  ;                                                       :user-identifier-valid-f        #(my-validator/email-address-valid?                               email-address)
+  ;                                                       :user-identifier-verified-f     #(my-database/email-address-verified?                             email-address)
+  ;                                                       :user-password-correct-f        #(my-database/user-password-matches?                              user-password)
+  ;                                                       :user-password-valid-f          #(my-validator/user-password-valid?                               user-password)
+  ;                                                       :user-rate-limit-exceeded-f     #(my-log-service/too-many-attempts-by-email-address?              email-address)})))
   ; =>
   ; {:body :performed-request/correct-security-code-received :status 200}
   ;
@@ -1097,16 +1602,16 @@
   ; {:body (namespaced keyword)
   ;   :forbidden-request/invalid-security-code-received
   ;   (Invalid security code has been received),
-  ;   :forbidden-request/invalid-user-contact-received
-  ;   (Invalid email address / phone number has been received),
+  ;   :forbidden-request/invalid-user-identifier-received
+  ;   (Invalid user identifier (email address / phone number / username) has been received),
   ;   :forbidden-request/invalid-user-password-received
   ;   (Invalid user password has been received),
   ;   :forbidden-request/no-security-code-sent-in-timeframe
   ;   (No security code has been sent in a specific timeframe),
-  ;   :forbidden-request/security-code-ip-address-not-matches
-  ;   (The received security code has been required from another IP address),
-  ;   :forbidden-request/unregistered-user-contact-received
-  ;   (Unregistered email address / phone number has been received),
+  ;   :forbidden-request/security-code-device-not-matches
+  ;   (The received security code has been required from another device),
+  ;   :forbidden-request/unregistered-user-identifier-received
+  ;   (Unregistered user identifier (email address / phone number / username) has been received),
   ;   :forbidden-request/user-authenticated
   ;   (The user is authenticated / logged in),
   ;   :invalid-request/invalid-ip-address
@@ -1126,80 +1631,86 @@
   ;   :unauthorized-request/incorrect-user-password-received
   ;   (Incorrect user password has been received),
   ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value)
-  ;   :unknown-error/additional-check-stage-failed
-  ;   (The additional check function returned a false value)
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 520}
   [request {:keys [additional-action-f
-                   additional-check-f
+                   additional-security-f
                    client-rate-limit-exceeded-f
                    provide-session-f
                    security-code-correct-f
+                   security-code-device-matches-f
                    security-code-expired-f
-                   security-code-ip-address-matches-f
                    security-code-sent-f
                    security-code-valid-f
                    user-authenticated-f
-                   user-contact-registered-f
-                   user-contact-valid-f
+                   user-identifier-registered-f
+                   user-identifier-valid-f
+                   user-identifier-verified-f
                    user-password-correct-f
                    user-password-valid-f
                    user-rate-limit-exceeded-f]
             :or {provide-session-f return}}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
-       (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                     :status 400}
-             (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                     :status 400}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded           :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded             :status 429}
-             (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received        :status 403}
-             (not (user-password-valid-f))                         {:body :forbidden-request/invalid-user-password-received       :status 403}
-             (not (security-code-valid-f))                         {:body :forbidden-request/invalid-security-code-received       :status 403}
-             (not (security-code-sent-f))                          {:body :forbidden-request/no-security-code-sent-in-timeframe   :status 403}
-             (not (security-code-ip-address-matches-f))            {:body :forbidden-request/security-code-ip-address-not-matches :status 403}
-             (not (user-contact-registered-f))                     {:body :forbidden-request/unregistered-user-contact-received   :status 403}
-             (boolean (user-authenticated-f))                      {:body :forbidden-request/user-authenticated                   :status 403}
-             (not (user-password-correct-f))                       {:body :unauthorized-request/incorrect-user-password-received  :status 401}
-             (not (security-code-correct-f))                       {:body :unauthorized-request/incorrect-security-code-received  :status 401}
-             (boolean (security-code-expired-f))                   {:body :unauthorized-request/expired-security-code-received    :status 401}
-             (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed            :status 520}
-             (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed           :status 520}
-             :security-code-verified                               (provide-session-f {:body :performed-request/correct-security-code-received :status 200}))))
+       (cond (not (audit/ip-address-valid? ip-address))                          {:body :invalid-request/invalid-ip-address                      :status 400}
+             (not (audit/user-agent-valid? user-agent))                          {:body :invalid-request/invalid-user-agent                      :status 400}
+             (boolean (client-rate-limit-exceeded-f))                            {:body :too-many-requests/client-rate-limit-exceeded            :status 429}
+             (boolean (user-rate-limit-exceeded-f))                              {:body :too-many-requests/user-rate-limit-exceeded              :status 429}
+             (boolean (user-authenticated-f))                                    {:body :forbidden-request/user-authenticated                    :status 403}
+             (not (user-identifier-valid-f))                                     {:body :forbidden-request/invalid-user-identifier-received      :status 403}
+             (not (user-password-valid-f))                                       {:body :forbidden-request/invalid-user-password-received        :status 403}
+             (not (security-code-valid-f))                                       {:body :forbidden-request/invalid-security-code-received        :status 403}
+             (not (security-code-sent-f))                                        {:body :forbidden-request/no-security-code-sent-in-timeframe    :status 403}
+             (not (user-identifier-registered-f))                                {:body :forbidden-request/unregistered-user-identifier-received :status 403}
+             (not (security-code-device-matches-f))                              {:body :forbidden-request/security-code-device-not-matches      :status 403}
+             (and user-identifier-verified-f (not (user-identifier-verified-f))) {:body :forbidden-request/unverified-user-identifier-received   :status 403}
+             (not (user-password-correct-f))                                     {:body :unauthorized-request/incorrect-user-password-received   :status 401}
+             (not (security-code-correct-f))                                     {:body :unauthorized-request/incorrect-security-code-received   :status 401}
+             (boolean (security-code-expired-f))                                 {:body :unauthorized-request/expired-security-code-received     :status 401}
+             (and additional-security-f (not (additional-security-f)))           {:body :unknown-error/additional-security-stage-failed          :status 520}
+             (and additional-action-f   (not (additional-action-f)))             {:body :unknown-error/additional-action-stage-failed            :status 520}
+             :security-code-verified                                             (provide-session-f {:body :performed-request/correct-security-code-received :status 200}))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
 (defn verify-user-password
   ; @description
-  ; Security protocol function for verifying a user password and optionally sending an MFA security code.
-  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
-  ; In case of the 'provide-session-f' function is passed, the 'send-security-code-f' function is NOT passed, no security check has
-  ; been failed, and the received user password is correct, then it applies the 'provide-session-f' function on the HTTP response.
+  ; - Security protocol function for verifying user credentials and optionally sending an MFA security code.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ; - In case of the 'provide-session-f' function is passed, the 'send-security-code-f' function is NOT passed, no security check has
+  ;   been failed, and the received user credentials are correct, it applies the 'provide-session-f' function on the HTTP response.
   ;
   ; @param (map) request
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
   ;   Custom side-effect function that applied if no security check has been failed.
   ;   Must return TRUE in case of successful execution.
-  ;  :additional-check-f (function)(opt)
-  ;   Custom security stage that if returns false, the protocol function returns an error response.
+  ;  :additional-security-f (function)(opt)
+  ;   Custom security function that is applied after the built-in security checks.
   ;  :client-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
   ;  :provide-session-f (function)(opt)
+  ;   Optional function for associating a user session to the HTTP response if no security check has been failed.
   ;   Must take the response as parameter, and associate a user session to it.
   ;  :send-security-code-f (function)(opt)
   ;   Must return TRUE if the security code email / SMS has been successfully sent.
   ;  :user-authenticated-f (function)
-  ;   Must return TRUE the request contains an authenticated / logged in user session.
-  ;  :user-contact-registered-f (function)
-  ;   Must return TRUE if the received email address / phone number is registered.
-  ;  :user-contact-valid-f (function)
-  ;   Must return TRUE if the received email address / phone number is valid.
-  ;  :user-contact-verified-f (function)
-  ;   Must return TRUE if the received email address / phone number is verified.
+  ;   Must return TRUE the user is authenticated / logged in.
+  ;  :user-identifier-registered-f (function)
+  ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
+  ;  :user-identifier-valid-f (function)
+  ;   Must return TRUE if the received user identifier (email address / phone number / username) is valid.
+  ;  :user-identifier-verified-f (function)(opt)
+  ;   Optional function for checking a user identifier (if contact: email address / phone number) whether it is verified.
+  ;   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
   ;  :user-password-correct-f (function)
-  ;   Must return TRUE if the received user password matches the stored one.
+  ;   Must return TRUE if the received user password are correct.
   ;  :user-password-valid-f (function)
   ;   Must return TRUE if the received user password is valid.
   ;  :user-rate-limit-exceeded-f (function)
@@ -1223,9 +1734,9 @@
   ;                                       :provide-session-f            #(my-session-handler/add-session-to-response         %)
   ;                                       :send-security-code-f         #(my-email-service/send-security-code-email!         email-address)
   ;                                       :user-authenticated-f         #(my-validator/request-has-valid-session?            request)
-  ;                                       :user-contact-registered-f    #(my-database/email-address-registered?              email-address)
-  ;                                       :user-contact-valid-f         #(my-validator/email-address-valid?                  email-address)
-  ;                                       :user-contact-verified-f      #(my-database/email-address-verified?                email-address)
+  ;                                       :user-identifier-registered-f #(my-database/email-address-registered?              email-address)
+  ;                                       :user-identifier-valid-f      #(my-validator/email-address-valid?                  email-address)
+  ;                                       :user-identifier-verified-f   #(my-database/email-address-verified?                email-address)
   ;                                       :user-password-correct-f      #(my-database/user-password-matches?                 user-password)
   ;                                       :user-password-valid-f        #(my-validator/user-password-valid?                  user-password)
   ;                                       :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-email-address? email-address)})))
@@ -1234,14 +1745,14 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-user-contact-received
-  ;   (Invalid email address / phone number has been received),
+  ;   :forbidden-request/invalid-user-identifier-received
+  ;   (Invalid user identifier (email address / phone number / username) has been received),
   ;   :forbidden-request/invalid-user-password-received
   ;   (Invalid user password has been received),
-  ;   :forbidden-request/unregistered-user-contact-received
-  ;   (Unregistered email address / phone number has been received),
-  ;   :forbidden-request/unverified-user-contact-received
-  ;   (Unverified email address / phone number has been received),
+  ;   :forbidden-request/unregistered-user-identifier-received
+  ;   (Unregistered user identifier (email address / phone number / username) has been received),
+  ;   :forbidden-request/unverified-user-identifier-received
+  ;   (Unverified user identifier (if contact: email address / phone number) has been received),
   ;   :forbidden-request/user-authenticated
   ;   (The user is authenticated / logged in),
   ;   :invalid-request/invalid-ip-address
@@ -1261,66 +1772,68 @@
   ;   :unauthorized-request/incorrect-user-password-received
   ;   (Incorrect user password has been received),
   ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value)
-  ;   :unknown-error/additional-check-stage-failed
-  ;   (The additional check function returned a false value)
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 500, 520}
   [request {:keys [additional-action-f
-                   additional-check-f
+                   additional-security-f
                    client-rate-limit-exceeded-f
                    provide-session-f
                    send-security-code-f
                    user-authenticated-f
-                   user-contact-registered-f
-                   user-contact-valid-f
-                   user-contact-verified-f
+                   user-identifier-registered-f
+                   user-identifier-valid-f
+                   user-identifier-verified-f
                    user-password-correct-f
                    user-password-valid-f
                    user-rate-limit-exceeded-f]
             :or {provide-session-f return}}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
-       (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                    :status 400}
-             (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                    :status 400}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
-             (not (user-contact-valid-f))                          {:body :forbidden-request/invalid-user-contact-received       :status 403}
-             (not (user-password-valid-f))                         {:body :forbidden-request/invalid-user-password-received      :status 403}
-             (not (user-contact-registered-f))                     {:body :forbidden-request/unregistered-user-contact-received  :status 403}
-             (not (user-contact-verified-f))                       {:body :forbidden-request/unverified-user-contact-received    :status 403}
-             (boolean (user-authenticated-f))                      {:body :forbidden-request/user-authenticated                  :status 403}
-             (not (user-password-correct-f))                       {:body :unauthorized-request/incorrect-user-password-received :status 401}
-             (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed           :status 520}
-             (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed          :status 520}
-             (not send-security-code-f)                            (provide-session-f {:body :performed-request/correct-user-password-received :status 200})
-             (not (send-security-code-f))                          {:body :server-error/unable-to-send-security-code :status 500}
-             :security-code-sent                                   {:body :performed-request/security-code-sent      :status 200})))
+       (cond (not (audit/ip-address-valid? ip-address))                          {:body :invalid-request/invalid-ip-address                      :status 400}
+             (not (audit/user-agent-valid? user-agent))                          {:body :invalid-request/invalid-user-agent                      :status 400}
+             (boolean (client-rate-limit-exceeded-f))                            {:body :too-many-requests/client-rate-limit-exceeded            :status 429}
+             (boolean (user-rate-limit-exceeded-f))                              {:body :too-many-requests/user-rate-limit-exceeded              :status 429}
+             (boolean (user-authenticated-f))                                    {:body :forbidden-request/user-authenticated                    :status 403}
+             (not (user-identifier-valid-f))                                     {:body :forbidden-request/invalid-user-identifier-received      :status 403}
+             (not (user-password-valid-f))                                       {:body :forbidden-request/invalid-user-password-received        :status 403}
+             (not (user-identifier-registered-f))                                {:body :forbidden-request/unregistered-user-identifier-received :status 403}
+             (and user-identifier-verified-f (not (user-identifier-verified-f))) {:body :forbidden-request/unverified-user-identifier-received   :status 403}
+             (not (user-password-correct-f))                                     {:body :unauthorized-request/incorrect-user-password-received   :status 401}
+             (and additional-security-f (not (additional-security-f)))           {:body :unknown-error/additional-security-stage-failed          :status 520}
+             (and additional-action-f   (not (additional-action-f)))             {:body :unknown-error/additional-action-stage-failed            :status 520}
+             (not send-security-code-f)                                          (provide-session-f {:body :performed-request/correct-user-password-received :status 200})
+             (not (send-security-code-f))                                        {:body :server-error/unable-to-send-security-code :status 500}
+             :security-code-sent                                                 {:body :performed-request/security-code-sent      :status 200})))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
 (defn verify-user-pin-code
   ; @description
-  ; Security protocol function for verifying a user PIN code.
-  ; Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
+  ; - Security protocol function for verifying a user PIN code.
+  ; - For performing additional side effects use the 'additional-action-f' function.
+  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
   ;   Custom side-effect function that is applied if no security check has been failed.
   ;   Must return TRUE in case of successful execution.
-  ;  :additional-check-f (function)(opt)
+  ;  :additional-security-f (function)(opt)
   ;   Custom security function that is applied after the built-in security checks.
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
   ;  :user-authenticated-f (function)
-  ;   Must return TRUE the request contains an authenticated / logged in user session.
+  ;   Must return TRUE the user is authenticated / logged in.
   ;  :user-exists-f (function)
   ;   Must return TRUE the user exists.
   ;  :user-pin-code-correct-f (function)
-  ;   Must return TRUE if the received user PIN code matches the stored one.
+  ;   Must return TRUE if the received user PIN code is correct.
   ;  :user-pin-code-valid-f (function)
   ;   Must return TRUE if the received user PIN code is valid.
   ;  :user-rate-limit-exceeded-f (function)
@@ -1370,13 +1883,13 @@
   ;   :unauthorized-request/incorrect-user-pin-code-received
   ;   (Incorrect user PIN code has been received),
   ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value)
-  ;   :unknown-error/additional-check-stage-failed
-  ;   (The additional check function returned a false value)
+  ;   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed
+  ;   (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 520}
   [request {:keys [additional-action-f
-                   additional-check-f
+                   additional-security-f
                    client-rate-limit-exceeded-f
                    user-authenticated-f
                    user-exists-f
@@ -1385,14 +1898,14 @@
                    user-rate-limit-exceeded-f]}]
   (let [ip-address (http/request->ip-address request)
         user-agent (http/request->user-agent request)]
-       (cond (not (audit/ip-address-valid? ip-address))            {:body :invalid-request/invalid-ip-address                    :status 400}
-             (not (audit/user-agent-valid? user-agent))            {:body :invalid-request/invalid-user-agent                    :status 400}
-             (boolean (client-rate-limit-exceeded-f))              {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
-             (boolean (user-rate-limit-exceeded-f))                {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
-             (not (user-pin-code-valid-f))                         {:body :forbidden-request/invalid-user-pin-code-received      :status 403}
-             (not (user-authenticated-f))                          {:body :forbidden-request/user-unauthenticated                :status 403}
-             (not (user-exists-f))                                 {:body :forbidden-request/user-not-exists                     :status 403}
-             (not (user-pin-code-correct-f))                       {:body :unauthorized-request/incorrect-user-pin-code-received :status 401}
-             (and additional-check-f  (not (additional-check-f)))  {:body :unknown-error/additional-check-stage-failed           :status 520}
-             (and additional-action-f (not (additional-action-f))) {:body :unknown-error/additional-action-stage-failed          :status 520}
-             :user-pin-code-verified                               {:body :performed-request/correct-user-pin-code-received      :status 200})))
+       (cond (not (audit/ip-address-valid? ip-address))                {:body :invalid-request/invalid-ip-address                    :status 400}
+             (not (audit/user-agent-valid? user-agent))                {:body :invalid-request/invalid-user-agent                    :status 400}
+             (boolean (client-rate-limit-exceeded-f))                  {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
+             (boolean (user-rate-limit-exceeded-f))                    {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
+             (not (user-authenticated-f))                              {:body :forbidden-request/user-unauthenticated                :status 403}
+             (not (user-exists-f))                                     {:body :forbidden-request/user-not-exists                     :status 403}
+             (not (user-pin-code-valid-f))                             {:body :forbidden-request/invalid-user-pin-code-received      :status 403}
+             (not (user-pin-code-correct-f))                           {:body :unauthorized-request/incorrect-user-pin-code-received :status 401}
+             (and additional-security-f (not (additional-security-f))) {:body :unknown-error/additional-security-stage-failed        :status 520}
+             (and additional-action-f   (not (additional-action-f)))   {:body :unknown-error/additional-action-stage-failed          :status 520}
+             :user-pin-code-verified                                   {:body :performed-request/correct-user-pin-code-received      :status 200})))

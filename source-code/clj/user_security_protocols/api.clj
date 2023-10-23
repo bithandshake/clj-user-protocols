@@ -6,12 +6,14 @@
 ;; ----------------------------------------------------------------------------
 
 ; user-security-protocols.protocols
-(def check-user-contact                   protocols/check-user-contact)
+(def check-user-identifier                protocols/check-user-identifier)
 (def create-user-account                  protocols/create-user-account)
 (def drop-user-session                    protocols/drop-user-session)
+(def recover-user-password                protocols/recover-user-password)
 (def remove-user-account                  protocols/remove-user-account)
 (def send-security-code-authenticated     protocols/send-security-code-authenticated)
 (def send-security-code-unauthenticated   protocols/send-security-code-unauthenticated)
+(def update-username                      protocols/update-username)
 (def update-user-contact                  protocols/update-user-contact)
 (def update-user-account                  protocols/update-user-account)
 (def verify-security-code-authenticated   protocols/verify-security-code-authenticated)
