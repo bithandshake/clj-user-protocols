@@ -15,7 +15,7 @@
 (def send-security-code-unauthenticated   protocols/send-security-code-unauthenticated)
 (def update-username                      protocols/update-username)
 (def update-user-contact                  protocols/update-user-contact)
-(def update-user-account                  protocols/update-user-account)
+(def update-user-data                     protocols/update-user-data)
 (def verify-security-code-authenticated   protocols/verify-security-code-authenticated)
 (def verify-security-code-unauthenticated protocols/verify-security-code-unauthenticated)
 (def verify-user-password                 protocols/verify-user-password)
