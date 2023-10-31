@@ -7,6 +7,7 @@ Documentation of the [clj-security-protocols](https://github.com/bithandshake/cl
 
 ### Clojure namespaces
 
+* [database-security-protocols.api](clj/database-security-protocols/API.md)
 * [user-security-protocols.api](clj/user-security-protocols/API.md)
 
 ---

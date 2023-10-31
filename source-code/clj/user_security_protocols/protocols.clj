@@ -24,6 +24,8 @@
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)(opt)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :user-identifier-registered-f (function)
   ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
   ;  :user-identifier-valid-f (function)(opt)
@@ -46,11 +48,11 @@
   ;   [request]
   ;   (let [ip-address    (-> request :remote-addr)
   ;         email-address (-> request :params :email-address)]
-  ;        (check-user-identifier request {:client-rate-limit-exceeded-f  #(my-log-service/too-many-attempts-by-ip-address?    ip-address)
-  ;                                        :user-identifier-registered-f  #(my-database/email-address-registered?              email-address)
-  ;                                        :user-identifier-valid-f       #(my-validator/email-address-valid?                  email-address)
-  ;                                        :user-identifier-verified-f    #(my-database/email-address-verified?                email-address)
-  ;                                        :user-rate-limit-exceeded-f    #(my-log-service/too-many-attempts-by-email-address? email-address)})))
+  ;        (check-user-identifier request {:client-rate-limit-exceeded-f #(my-log-service/too-many-attempts-by-ip-address?    ip-address)
+  ;                                        :user-identifier-registered-f #(my-database/email-address-registered?              email-address)
+  ;                                        :user-identifier-valid-f      #(my-validator/email-address-valid?                  email-address)
+  ;                                        :user-identifier-verified-f   #(my-database/email-address-verified?                email-address)
+  ;                                        :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-email-address? email-address)})))
   ; =>
   ; {:body :performed-request/user-identifier-verified :status 200}
   ;
@@ -58,6 +60,8 @@
   ; {:body (namespaced keyword)
   ;   :forbidden-request/invalid-user-identifier-received
   ;   (Invalid user identifier (email address / phone number / username) has been received),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :invalid-request/invalid-ip-address
   ;   (No valid IP address has been found in the request),
   ;   :invalid-request/invalid-user-agent
@@ -71,9 +75,9 @@
   ;   :performed-request/verified-user-identifier-received
   ;   (Registered and verified user identifier (email address / phone number / username) has been received),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unknown-error/additional-action-stage-failed
   ;   (The additional action function returned a false value),
   ;   :unknown-error/additional-security-stage-failed
@@ -83,6 +87,7 @@
   [request {:keys [additional-action-f
                    additional-security-f
                    client-rate-limit-exceeded-f
+                   permission-granted-f
                    user-identifier-registered-f
                    user-identifier-valid-f
                    user-identifier-verified-f
@@ -93,6 +98,7 @@
              (not (audit/user-agent-valid? user-agent))                                  {:body :invalid-request/invalid-user-agent                 :status 400}
              (and client-rate-limit-exceeded-f (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded       :status 429}
              (and user-rate-limit-exceeded-f   (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded         :status 429}
+             (and permission-granted-f         (not (permission-granted-f)))             {:body :forbidden-request/permission-denied                :status 403}
              (and user-identifier-valid-f      (not (user-identifier-valid-f)))          {:body :forbidden-request/invalid-user-identifier-received :status 403}
              (and additional-security-f        (not (additional-security-f)))            {:body :unknown-error/additional-security-stage-failed     :status 520}
              (and additional-action-f          (not (additional-action-f)))              {:body :unknown-error/additional-action-stage-failed       :status 520}
@@ -131,6 +137,8 @@
   ;  :create-user-f (function)
   ;   Side-effect function for creating the user account, applied after and if every security check passed.
   ;   Must return TRUE if the user account has been successfully created.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :provide-user-session-f (function)(opt)
   ;   Must take the response as parameter, and associate a user session to it.
   ;   Must return NIL in case of any error.
@@ -189,6 +197,8 @@
   ;   (Invalid user data has been received),
   ;   :forbidden-request/invalid-user-password-received
   ;   (Invalid user password has been received),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/registered-user-identifier-received
   ;   (Registered user identifier (email address / phone number / username) has been received),
   ;   :forbidden-request/user-authenticated
@@ -210,9 +220,9 @@
   ;   :server-error/unable-to-send-welcome-message
   ;   (The server cannot send the welcome email / SMS to the user),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unknown-error/additional-action-stage-failed
   ;   (The additional action function returned a false value),
   ;   :unknown-error/additional-security-stage-failed
@@ -223,6 +233,7 @@
                    additional-security-f
                    client-rate-limit-exceeded-f
                    create-user-account-f
+                   permission-granted-f
                    provide-user-session-f
                    send-security-code-f
                    send-welcome-message-f
@@ -238,6 +249,7 @@
              (not (audit/user-agent-valid? user-agent))                                  {:body :invalid-request/invalid-user-agent                    :status 400}
              (and client-rate-limit-exceeded-f (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
              (and user-rate-limit-exceeded-f   (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
+             (and permission-granted-f         (not (permission-granted-f)))             {:body :forbidden-request/permission-denied                   :status 403}
              (and user-authenticated-f         (boolean (user-authenticated-f)))         {:body :forbidden-request/user-authenticated                  :status 403}
              (and user-identifier-valid-f      (not (user-identifier-valid-f)))          {:body :forbidden-request/invalid-user-identifier-received    :status 403}
              (and user-password-valid-f        (not (user-password-valid-f)))            {:body :forbidden-request/invalid-user-password-received      :status 403}
@@ -253,8 +265,8 @@
              (and send-security-code-f)                              {:body :performed-request/security-code-sent       :status 201}
              (not provide-user-session-f)                            {:body :performed-request/user-account-created     :status 201}
              :providing-user-session                                 (if-let [response (provide-user-session-f {:body :performed-request/ready-to-provide-user-session :status 201})]
-                                                                             (-> {:body :performed-request/user-session-provided     :status 201} (merge response))
-                                                                             (-> {:body :server-error/unable-to-provide-user-session :status 500})))))
+                                                                             (->> {:body :performed-request/user-session-provided     :status 201} (merge response))
+                                                                             (->  {:body :server-error/unable-to-provide-user-session :status 500})))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -279,6 +291,8 @@
   ;  :drop-user-session-f (function)
   ;   Must take the response as parameter, and remove the user session from it.
   ;   Must return NIL in case of any error.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :user-authenticated-f (function)(opt)
   ;   Must return TRUE the user is authenticated / logged in.
   ;  :user-exists-f (function)(opt)
@@ -309,6 +323,8 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/user-not-exists
   ;   (The user ID does not exist),
   ;   :forbidden-request/user-unauthenticated
@@ -331,6 +347,7 @@
                    additional-security-f
                    client-rate-limit-exceeded-f
                    drop-user-session-f
+                   permission-granted-f
                    user-authenticated-f
                    user-exists-f
                    user-rate-limit-exceeded-f]}]
@@ -340,14 +357,15 @@
              (not (audit/user-agent-valid? user-agent))                                  {:body :invalid-request/invalid-user-agent             :status 400}
              (and client-rate-limit-exceeded-f (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded   :status 429}
              (and user-rate-limit-exceeded-f   (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded     :status 429}
+             (and permission-granted-f         (not (permission-granted-f)))             {:body :forbidden-request/permission-denied            :status 403}
              (and user-authenticated-f         (not (user-authenticated-f)))             {:body :forbidden-request/user-unauthenticated         :status 403}
              (and user-exists-f                (not (user-exists-f)))                    {:body :forbidden-request/user-not-exists              :status 403}
              (and additional-security-f        (not (additional-security-f)))            {:body :unknown-error/additional-security-stage-failed :status 520}
              (and additional-action-f          (not (additional-action-f)))              {:body :unknown-error/additional-action-stage-failed   :status 520}
              ; After every provided security function has been passed, it removes the user session from the HTTP response.
              :dropping-user-session (if-let [response (drop-user-session-f {:body :performed-request/ready-to-drop-user-session :status 200})]
-                                            (-> {:body :performed-request/user-session-dropped   :status 200} (merge response))
-                                            (-> {:body :server-error/unable-to-drop-user-session :status 500})))))
+                                            (->> {:body :performed-request/user-session-dropped   :status 200} (merge response))
+                                            (->  {:body :server-error/unable-to-drop-user-session :status 500})))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -373,6 +391,8 @@
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
   ;  :fresh-password-valid-f (function)
   ;   Must return TRUE if the received fresh password is valid.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :provide-user-session-f (function)(opt)
   ;   Must take the response as parameter, and associate a user session to it.
   ;   Must return NIL in case of any error.
@@ -447,6 +467,8 @@
   ;   (Invalid user identifier (email address / phone number / username) has been received),
   ;   :forbidden-request/no-security-code-sent-in-timeframe
   ;   (No security code has been sent in a specific timeframe),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/security-code-device-not-matches
   ;   (The received security code has been required from another device),
   ;   :forbidden-request/unregistered-user-identifier-received
@@ -464,9 +486,9 @@
   ;   :server-error/unable-to-recover-user-password
   ;   (The server cannot recover the user's password),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unauthorized-request/expired-security-code-received
   ;   (Expired security code has been received),
   ;   :unauthorized-request/incorrect-security-code-received
@@ -481,6 +503,7 @@
                    additional-security-f
                    client-rate-limit-exceeded-f
                    fresh-password-valid-f
+                   permission-granted-f
                    provide-user-session-f
                    recover-user-password-f
                    security-code-correct-f
@@ -499,6 +522,7 @@
              (not (audit/user-agent-valid? user-agent))                                    {:body :invalid-request/invalid-user-agent                      :status 400}
              (and client-rate-limit-exceeded-f   (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded            :status 429}
              (and user-rate-limit-exceeded-f     (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded              :status 429}
+             (and permission-granted-f           (not (permission-granted-f)))             {:body :forbidden-request/permission-denied                     :status 403}
              (and user-authenticated-f           (boolean (user-authenticated-f)))         {:body :forbidden-request/user-authenticated                    :status 403}
              (and fresh-password-valid-f         (not (fresh-password-valid-f)))           {:body :forbidden-request/invalid-fresh-password-received       :status 403}
              (and user-identifier-valid-f        (not (user-identifier-valid-f)))          {:body :forbidden-request/invalid-user-identifier-received      :status 403}
@@ -516,8 +540,8 @@
              (not (recover-user-password-f)) {:body :server-error/unable-to-recover-user-password :status 500}
              (not provide-user-session-f)    {:body :performed-request/user-password-recovered    :status 200}
              :providing-user-session         (if-let [response (provide-user-session-f {:body :performed-request/ready-to-provide-user-session :status 200})]
-                                                     (-> {:body :performed-request/user-session-provided     :status 200} (merge response))
-                                                     (-> {:body :server-error/unable-to-provide-user-session :status 500})))))
+                                                     (->> {:body :performed-request/user-session-provided     :status 200} (merge response))
+                                                     (->  {:body :server-error/unable-to-provide-user-session :status 500})))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -542,6 +566,8 @@
   ;  :drop-user-session-f (function)(opt)
   ;   Must take the response as parameter, and remove the user session from it.
   ;   Must return NIL in case of any error.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :remove-user-account-f (function)
   ;   Side-effect function for removing the user account, applied after and if every security check passed.
   ;   Must return TRUE if the user account has been successfully removed.
@@ -609,6 +635,8 @@
   ;   (Invalid user password has been received),
   ;   :forbidden-request/no-security-code-sent-in-timeframe
   ;   (No security code has been sent in a specific timeframe),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/security-code-device-not-matches
   ;   (The received security code has been required from another device),
   ;   :forbidden-request/user-not-exists
@@ -630,9 +658,9 @@
   ;   :server-error/unable-to-send-goodbye-message
   ;   (The server cannot send the goodbye email / SMS to the user),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unauthorized-request/expired-security-code-received
   ;   (Expired security code has been received),
   ;   :unauthorized-request/incorrect-security-code-received
@@ -649,6 +677,7 @@
                    additional-security-f
                    client-rate-limit-exceeded-f
                    drop-user-session-f
+                   permission-granted-f
                    remove-user-account-f
                    security-code-correct-f
                    security-code-device-matches-f
@@ -667,6 +696,7 @@
              (not (audit/user-agent-valid? user-agent))                                    {:body :invalid-request/invalid-user-agent                    :status 400}
              (and client-rate-limit-exceeded-f   (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
              (and user-rate-limit-exceeded-f     (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
+             (and permission-granted-f           (not (permission-granted-f)))             {:body :forbidden-request/permission-denied                   :status 403}
              (and user-authenticated-f           (not (user-authenticated-f)))             {:body :forbidden-request/user-unauthenticated                :status 403}
              (and user-exists-f                  (not (user-exists-f)))                    {:body :forbidden-request/user-not-exists                     :status 403}
              (and user-password-valid-f          (not (user-password-valid-f)))            {:body :forbidden-request/invalid-user-password-received      :status 403}
@@ -684,8 +714,8 @@
              (not (remove-user-account-f)) {:body :server-error/unable-to-remove-user-account :status 500}
              (not drop-user-session-f)     {:body :performed-request/user-account-removed     :status 200}
              :dropping-user-session        (if-let [response (drop-user-session-f {:body :performed-request/ready-to-drop-user-session :status 200})]
-                                                   (-> {:body :performed-request/user-session-dropped   :status 200} (merge response))
-                                                   (-> {:body :server-error/unable-to-drop-user-session :status 500})))))
+                                                   (->> {:body :performed-request/user-session-dropped   :status 200} (merge response))
+                                                   (->  {:body :server-error/unable-to-drop-user-session :status 500})))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -707,6 +737,8 @@
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)(opt)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :send-security-code-f (function)
   ;   Side-effect function for sending the security code to the user, applied after and if every security check passed.
   ;   Must return TRUE if the security code email / SMS has been successfully sent.
@@ -740,6 +772,8 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/user-not-exists
   ;   (The user ID does not exist),
   ;   :forbidden-request/user-unauthenticated
@@ -753,9 +787,9 @@
   ;   :server-error/unable-to-send-security-code
   ;   (The server cannot send the security code email / SMS to the user),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unknown-error/additional-action-stage-failed
   ;   (The additional action function returned a false value),
   ;   :unknown-error/additional-security-stage-failed
@@ -765,6 +799,7 @@
   [request {:keys [additional-action-f
                    additional-security-f
                    client-rate-limit-exceeded-f
+                   permission-granted-f
                    send-security-code-f
                    user-authenticated-f
                    user-exists-f
@@ -775,6 +810,7 @@
              (not (audit/user-agent-valid? user-agent))                                  {:body :invalid-request/invalid-user-agent             :status 400}
              (and client-rate-limit-exceeded-f (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded   :status 429}
              (and user-rate-limit-exceeded-f   (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded     :status 429}
+             (and permission-granted-f         (not (permission-granted-f)))             {:body :forbidden-request/permission-denied            :status 403}
              (and user-authenticated-f         (not (user-authenticated-f)))             {:body :forbidden-request/user-unauthenticated         :status 403}
              (and user-exists-f                (not (user-exists-f)))                    {:body :forbidden-request/user-not-exists              :status 403}
              (and additional-security-f        (not (additional-security-f)))            {:body :unknown-error/additional-security-stage-failed :status 520}
@@ -803,6 +839,8 @@
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)(opt)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :send-security-code-f (function)
   ;   Side-effect function for sending the security code to the user, applied after and if every security check passed.
   ;   Must return TRUE if the security code email / SMS has been successfully sent.
@@ -844,6 +882,8 @@
   ; {:body (namespaced keyword)
   ;   :forbidden-request/invalid-user-identifier-received
   ;   (Invalid user identifier (email address / phone number / username) has been received),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/unregistered-user-identifier-received
   ;   (Unregistered user identifier (email address / phone number / username) has been received),
   ;   :forbidden-request/unverified-user-identifier-received
@@ -859,9 +899,9 @@
   ;   :server-error/unable-to-send-security-code
   ;   (The server cannot send the security code email / SMS to the user),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unknown-error/additional-action-stage-failed
   ;   (The additional action function returned a false value),
   ;   :unknown-error/additional-security-stage-failed
@@ -871,6 +911,7 @@
   [request {:keys [additional-action-f
                    additional-security-f
                    client-rate-limit-exceeded-f
+                   permission-granted-f
                    send-security-code-f
                    user-authenticated-f
                    user-identifier-registered-f
@@ -883,6 +924,7 @@
              (not (audit/user-agent-valid? user-agent))                                  {:body :invalid-request/invalid-user-agent                      :status 400}
              (and client-rate-limit-exceeded-f (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded            :status 429}
              (and user-rate-limit-exceeded-f   (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded              :status 429}
+             (and permission-granted-f         (not (permission-granted-f)))             {:body :forbidden-request/permission-denied                     :status 403}
              (and user-authenticated-f         (boolean (user-authenticated-f)))         {:body :forbidden-request/user-authenticated                    :status 403}
              (and user-identifier-valid-f      (not (user-identifier-valid-f)))          {:body :forbidden-request/invalid-user-identifier-received      :status 403}
              (and user-identifier-registered-f (not (user-identifier-registered-f)))     {:body :forbidden-request/unregistered-user-identifier-received :status 403}
@@ -916,6 +958,8 @@
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
   ;  :security-code-correct-f (function)(opt)
   ;   Must return TRUE if the received security code is correct.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :security-code-device-matches-f (function)(opt)
   ;   Must return TRUE if the received security code has been required from the same device.
   ;  :security-code-expired-f (function)(opt)
@@ -985,6 +1029,8 @@
   ;   (Invalid user password has been received),
   ;   :forbidden-request/no-security-code-sent-in-timeframe
   ;   (No security code has been sent in a specific timeframe),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/registered-user-contact-received
   ;   (Registered user contact (email address / phone number) has been received),
   ;   :forbidden-request/security-code-device-not-matches
@@ -1002,9 +1048,9 @@
   ;   :server-error/unable-to-update-user-contact
   ;   (The server cannot update the user's email address / phone number),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unauthorized-request/expired-security-code-received
   ;   (Expired security code has been received),
   ;   :unauthorized-request/incorrect-security-code-received
@@ -1020,6 +1066,7 @@
   [request {:keys [additional-action-f
                    additional-security-f
                    client-rate-limit-exceeded-f
+                   permission-granted-f
                    security-code-correct-f
                    security-code-device-matches-f
                    security-code-expired-f
@@ -1039,6 +1086,7 @@
              (not (audit/user-agent-valid? user-agent))                                    {:body :invalid-request/invalid-user-agent                    :status 400}
              (and client-rate-limit-exceeded-f   (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
              (and user-rate-limit-exceeded-f     (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
+             (and permission-granted-f           (not (permission-granted-f)))             {:body :forbidden-request/permission-denied                   :status 403}
              (and user-authenticated-f           (not (user-authenticated-f)))             {:body :forbidden-request/user-unauthenticated                :status 403}
              (and user-exists-f                  (not (user-exists-f)))                    {:body :forbidden-request/user-not-exists                     :status 403}
              (and user-password-valid-f          (not (user-password-valid-f)))            {:body :forbidden-request/invalid-user-password-received      :status 403}
@@ -1077,6 +1125,8 @@
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)(opt)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :update-user-data-f (function)
   ;   Side-effect function for updating the user data, applied after and if every security check passed.
   ;   Must return TRUE if the user data has been successfully updated.
@@ -1116,6 +1166,8 @@
   ; {:body (namespaced keyword)
   ;   :forbidden-request/invalid-user-data-received
   ;   (Invalid user data has been received),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/user-not-exists
   ;   (The user ID does not exist),
   ;   :forbidden-request/user-unauthenticated
@@ -1129,9 +1181,9 @@
   ;   :server-error/unable-to-update-user-data
   ;   (The server cannot update the user data),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unknown-error/additional-action-stage-failed
   ;   (The additional action function returned a false value),
   ;   :unknown-error/additional-security-stage-failed
@@ -1141,6 +1193,7 @@
   [request {:keys [additional-action-f
                    additional-security-f
                    client-rate-limit-exceeded-f
+                   permission-granted-f
                    update-user-data-f
                    user-authenticated-f
                    user-data-valid-f
@@ -1152,6 +1205,7 @@
              (not (audit/user-agent-valid? user-agent))                                  {:body :invalid-request/invalid-user-agent             :status 400}
              (and client-rate-limit-exceeded-f (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded   :status 429}
              (and user-rate-limit-exceeded-f   (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded     :status 429}
+             (and permission-granted-f         (not (permission-granted-f)))             {:body :forbidden-request/permission-denied            :status 403}
              (and user-authenticated-f         (not (user-authenticated-f)))             {:body :forbidden-request/user-unauthenticated         :status 403}
              (and user-exists-f                (not (user-exists-f)))                    {:body :forbidden-request/user-not-exists              :status 403}
              (and user-data-valid-f            (not (user-data-valid-f)))                {:body :forbidden-request/invalid-user-data-received   :status 403}
@@ -1183,6 +1237,8 @@
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
   ;  :fresh-password-valid-f (function)(opt)
   ;   Must return TRUE if the received fresh password is valid.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :security-code-correct-f (function)(opt)
   ;   Must return TRUE if the received security code is correct.
   ;  :security-code-device-matches-f (function)(opt)
@@ -1249,6 +1305,8 @@
   ;   (Invalid user password has been received),
   ;   :forbidden-request/no-security-code-sent-in-timeframe
   ;   (No security code has been sent in a specific timeframe),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/security-code-device-not-matches
   ;   (The received security code has been required from another device),
   ;   :forbidden-request/user-not-exists
@@ -1264,9 +1322,9 @@
   ;   :server-error/unable-to-update-user-password
   ;   (The server cannot update the user's password),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unauthorized-request/expired-security-code-received
   ;   (Expired security code has been received),
   ;   :unauthorized-request/incorrect-security-code-received
@@ -1283,6 +1341,7 @@
                    additional-security-f
                    client-rate-limit-exceeded-f
                    fresh-password-valid-f
+                   permission-granted-f
                    security-code-correct-f
                    security-code-device-matches-f
                    security-code-expired-f
@@ -1300,6 +1359,7 @@
              (not (audit/user-agent-valid? user-agent))                                    {:body :invalid-request/invalid-user-agent                    :status 400}
              (and client-rate-limit-exceeded-f   (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
              (and user-rate-limit-exceeded-f     (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
+             (and permission-granted-f           (not (permission-granted-f)))             {:body :forbidden-request/permission-denied                   :status 403}
              (and user-authenticated-f           (not (user-authenticated-f)))             {:body :forbidden-request/user-unauthenticated                :status 403}
              (and user-exists-f                  (not (user-exists-f)))                    {:body :forbidden-request/user-not-exists                     :status 403}
              (and fresh-password-valid-f         (not (fresh-password-valid-f)))           {:body :forbidden-request/invalid-fresh-password-received     :status 403}
@@ -1336,6 +1396,8 @@
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)(opt)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :update-username-f (function)
   ;   Side-effect function for updating the username, applied after and if every security check passed.
   ;   Must return TRUE if the username has been successfully updated.
@@ -1388,6 +1450,8 @@
   ;   (Invalid username has been received),
   ;   :forbidden-request/invalid-user-password-received
   ;   (Invalid user password has been received),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/registered-username-received
   ;   (Registered username has been received),
   ;   :forbidden-request/user-not-exists
@@ -1403,9 +1467,9 @@
   ;   :server-error/unable-to-update-username
   ;   (The server cannot update the username),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unauthorized-request/incorrect-user-password-received
   ;   (Incorrect user password has been received),
   ;   :unknown-error/additional-action-stage-failed
@@ -1417,6 +1481,7 @@
   [request {:keys [additional-action-f
                    additional-security-f
                    client-rate-limit-exceeded-f
+                   permission-granted-f
                    update-username-f
                    username-registered-f
                    username-valid-f
@@ -1431,6 +1496,7 @@
              (not (audit/user-agent-valid? user-agent))                                  {:body :invalid-request/invalid-user-agent                    :status 400}
              (and client-rate-limit-exceeded-f (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded          :status 429}
              (and user-rate-limit-exceeded-f   (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded            :status 429}
+             (and permission-granted-f         (not (permission-granted-f)))             {:body :forbidden-request/permission-denied                   :status 403}
              (and user-authenticated-f         (not (user-authenticated-f)))             {:body :forbidden-request/user-unauthenticated                :status 403}
              (and user-exists-f                (not (user-exists-f)))                    {:body :forbidden-request/user-not-exists                     :status 403}
              (and username-valid-f             (not (username-valid-f)))                 {:body :forbidden-request/invalid-username-received           :status 403}
@@ -1463,6 +1529,8 @@
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)(opt)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :security-code-correct-f (function)
   ;   Must return TRUE if the received security code is correct.
   ;  :security-code-device-matches-f (function)(opt)
@@ -1512,6 +1580,8 @@
   ;   (Invalid security code has been received),
   ;   :forbidden-request/no-security-code-sent-in-timeframe
   ;   (No security code has been sent in a specific timeframe),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/security-code-device-not-matches
   ;   (The received security code has been required from another device),
   ;   :forbidden-request/user-not-exists
@@ -1525,9 +1595,9 @@
   ;   :performed-request/correct-security-code-received
   ;   (Correct security code has been received),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unauthorized-request/incorrect-security-code-received
   ;   (Incorrect security code has been received),
   ;   :unauthorized-request/expired-security-code-received
@@ -1541,6 +1611,7 @@
   [request {:keys [additional-action-f
                    additional-security-f
                    client-rate-limit-exceeded-f
+                   permission-granted-f
                    security-code-correct-f
                    security-code-device-matches-f
                    security-code-expired-f
@@ -1555,6 +1626,7 @@
              (not (audit/user-agent-valid? user-agent))                                    {:body :invalid-request/invalid-user-agent                   :status 400}
              (and client-rate-limit-exceeded-f   (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded         :status 429}
              (and user-rate-limit-exceeded-f     (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded           :status 429}
+             (and permission-granted-f           (not (permission-granted-f)))             {:body :forbidden-request/permission-denied                  :status 403}
              (and user-authenticated-f           (not (user-authenticated-f)))             {:body :forbidden-request/user-unauthenticated               :status 403}
              (and user-exists-f                  (not (user-exists-f)))                    {:body :forbidden-request/user-not-exists                    :status 403}
              (and security-code-valid-f          (not (security-code-valid-f)))            {:body :forbidden-request/invalid-security-code-received     :status 403}
@@ -1589,6 +1661,8 @@
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)(opt)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :provide-user-session-f (function)(opt)
   ;   Must take the response as parameter, and associate a user session to it.
   ;   Must return NIL in case of any error.
@@ -1659,6 +1733,8 @@
   ;   (Invalid user password has been received),
   ;   :forbidden-request/no-security-code-sent-in-timeframe
   ;   (No security code has been sent in a specific timeframe),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/security-code-device-not-matches
   ;   (The received security code has been required from another device),
   ;   :forbidden-request/unregistered-user-identifier-received
@@ -1676,9 +1752,9 @@
   ;   :server-error/unable-to-provide-user-session
   ;   (The server cannot provide the user session to the HTTP response),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unauthorized-request/expired-security-code-received
   ;   (Expired security code has been received),
   ;   :unauthorized-request/incorrect-security-code-received
@@ -1694,6 +1770,7 @@
   [request {:keys [additional-action-f
                    additional-security-f
                    client-rate-limit-exceeded-f
+                   permission-granted-f
                    provide-user-session-f
                    security-code-correct-f
                    security-code-device-matches-f
@@ -1713,6 +1790,7 @@
              (not (audit/user-agent-valid? user-agent))                                    {:body :invalid-request/invalid-user-agent                      :status 400}
              (and client-rate-limit-exceeded-f   (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded            :status 429}
              (and user-rate-limit-exceeded-f     (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded              :status 429}
+             (and permission-granted-f           (not (permission-granted-f)))             {:body :forbidden-request/permission-denied                     :status 403}
              (and user-authenticated-f           (boolean (user-authenticated-f)))         {:body :forbidden-request/user-authenticated                    :status 403}
              (and user-identifier-valid-f        (not (user-identifier-valid-f)))          {:body :forbidden-request/invalid-user-identifier-received      :status 403}
              (and user-password-valid-f          (not (user-password-valid-f)))            {:body :forbidden-request/invalid-user-password-received        :status 403}
@@ -1729,8 +1807,8 @@
              (not (security-code-correct-f)) {:body :unauthorized-request/incorrect-security-code-received :status 401}
              (not provide-user-session-f)    {:body :performed-request/correct-security-code-received      :status 200}
              :providing-user-session         (if-let [response (provide-user-session-f {:body :performed-request/ready-to-provide-user-session :status 200})]
-                                                     (-> {:body :performed-request/user-session-provided     :status 200} (merge response))
-                                                     (-> {:body :server-error/unable-to-provide-user-session :status 500})))))
+                                                     (->> {:body :performed-request/user-session-provided     :status 200} (merge response))
+                                                     (->  {:body :server-error/unable-to-provide-user-session :status 500})))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -1756,6 +1834,8 @@
   ;   Custom security function that is applied after the built-in security checks.
   ;  :client-rate-limit-exceeded-f (function)(opt)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :provide-user-session-f (function)(opt)
   ;   Must take the response as parameter, and associate a user session to it.
   ;   Must return NIL in case of any error.
@@ -1809,6 +1889,8 @@
   ;   (Invalid user identifier (email address / phone number / username) has been received),
   ;   :forbidden-request/invalid-user-password-received
   ;   (Invalid user password has been received),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/unregistered-user-identifier-received
   ;   (Unregistered user identifier (email address / phone number / username) has been received),
   ;   :forbidden-request/unverified-user-identifier-received
@@ -1830,9 +1912,9 @@
   ;   :server-error/unable-to-send-security-code
   ;   (The server cannot send the security code email / SMS to the user),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unauthorized-request/incorrect-user-password-received
   ;   (Incorrect user password has been received),
   ;   :unknown-error/additional-action-stage-failed
@@ -1844,6 +1926,7 @@
   [request {:keys [additional-action-f
                    additional-security-f
                    client-rate-limit-exceeded-f
+                   permission-granted-f
                    provide-user-session-f
                    send-security-code-f
                    user-authenticated-f
@@ -1859,6 +1942,7 @@
              (not (audit/user-agent-valid? user-agent))                                  {:body :invalid-request/invalid-user-agent                      :status 400}
              (and client-rate-limit-exceeded-f (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded            :status 429}
              (and user-rate-limit-exceeded-f   (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded              :status 429}
+             (and permission-granted-f         (not (permission-granted-f)))             {:body :forbidden-request/permission-denied                     :status 403}
              (and user-authenticated-f         (boolean (user-authenticated-f)))         {:body :forbidden-request/user-authenticated                    :status 403}
              (and user-identifier-valid-f      (not (user-identifier-valid-f)))          {:body :forbidden-request/invalid-user-identifier-received      :status 403}
              (and user-password-valid-f        (not (user-password-valid-f)))            {:body :forbidden-request/invalid-user-password-received        :status 403}
@@ -1873,8 +1957,8 @@
              (and send-security-code-f)                              {:body :performed-request/security-code-sent                  :status 200}
              (not provide-user-session-f)                            {:body :performed-request/correct-user-password-received      :status 200}
              :providing-user-session                                 (if-let [response (provide-user-session-f {:body :performed-request/ready-to-provide-user-session :status 200})]
-                                                                             (-> {:body :performed-request/user-session-provided     :status 200} (merge response))
-                                                                             (-> {:body :server-error/unable-to-provide-user-session :status 500})))))
+                                                                             (->> {:body :performed-request/user-session-provided     :status 200} (merge response))
+                                                                             (->  {:body :server-error/unable-to-provide-user-session :status 500})))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -1896,6 +1980,8 @@
   ;   Must return TRUE in case of no security concern detected.
   ;  :client-rate-limit-exceeded-f (function)(opt)
   ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)
+  ;   Must return TRUE if the user has permission to do the action.
   ;  :user-authenticated-f (function)(opt)
   ;   Must return TRUE the user is authenticated / logged in.
   ;  :user-exists-f (function)(opt)
@@ -1934,6 +2020,8 @@
   ; {:body (namespaced keyword)
   ;   :forbidden-request/invalid-user-pin-code-received
   ;   (Invalid user PIN code has been received),
+  ;   :forbidden-request/permission-denied
+  ;   (The user has no permission to do the action),
   ;   :forbidden-request/user-not-exists
   ;   (The user ID does not exist),
   ;   :forbidden-request/user-unauthenticated
@@ -1945,9 +2033,9 @@
   ;   :performed-request/correct-user-pin-code-received
   ;   (Correct user PIN code has been received),
   ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the client device / IP address in a specific timeframe),
+  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
   ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions has been attempted by the user in a specific timeframe),
+  ;   (Too many actions have been attempted by the user in a specific timeframe),
   ;   :unauthorized-request/incorrect-user-pin-code-received
   ;   (Incorrect user PIN code has been received),
   ;   :unknown-error/additional-action-stage-failed
@@ -1959,6 +2047,7 @@
   [request {:keys [additional-action-f
                    additional-security-f
                    client-rate-limit-exceeded-f
+                   permission-granted-f
                    user-authenticated-f
                    user-exists-f
                    user-pin-code-correct-f
@@ -1970,6 +2059,7 @@
              (not (audit/user-agent-valid? user-agent))                                  {:body :invalid-request/invalid-user-agent               :status 400}
              (and client-rate-limit-exceeded-f (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded     :status 429}
              (and user-rate-limit-exceeded-f   (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded       :status 429}
+             (and permission-granted-f         (not (permission-granted-f)))             {:body :forbidden-request/permission-denied              :status 403}
              (and user-authenticated-f         (not (user-authenticated-f)))             {:body :forbidden-request/user-unauthenticated           :status 403}
              (and user-exists-f                (not (user-exists-f)))                    {:body :forbidden-request/user-not-exists                :status 403}
              (and user-pin-code-valid-f        (not (user-pin-code-valid-f)))            {:body :forbidden-request/invalid-user-pin-code-received :status 403}
