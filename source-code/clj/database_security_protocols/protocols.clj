@@ -1,6 +1,7 @@
 
 (ns database-security-protocols.protocols
-    (:require [http.api :as http]))
+    (:require [audit.api :as audit]
+              [http.api  :as http]))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -11,7 +12,7 @@
   ; - For performing additional side effects use the 'additional-action-f' function.
   ; - For implementing additional security levels use the 'additional-security-f' function.
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
-  ; - The data validating and manipulating functions are applied as a cascade where every function takes the data as it has returned from
+  ; - The data validating / manipulating functions are applied as a cascade where every function takes the data as it has returned from
   ;   the previous function (except the first function that takes the initial data) and every function has to return the validated / manipulated
   ;   data in case of successful execution.
   ;   The cascade functions are applied in the following order:
@@ -26,7 +27,7 @@
   ;
   ; @param (map) request
   ; @param (*)(opt) initial-data
-  ; The 'initial-data' is passed over the data validating and manipulating functions that are applied as a cascade.
+  ; The 'initial-data' is passed over the data validating / manipulating functions that are applied as a cascade.
   ; Default: NIL
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
@@ -151,15 +152,18 @@
               (and permission-granted-f         (not (permission-granted-f)))             {:body :forbidden-request/permission-denied            :status 403}
               (and additional-security-f        (not (additional-security-f)))            {:body :unknown-error/additional-security-stage-failed :status 520}
               (and additional-action-f          (not (additional-action-f)))              {:body :unknown-error/additional-action-stage-failed   :status 520}
-              :getting-data (cond-> initial-data % get-data-f              (or (get-data-f              %) {:body :server-error/unable-to-get-data              :status 500})
-                                                   data-valid-f            (or (data-valid-f            %) {:body :server-error/unable-to-validate-data         :status 500})
-                                                   prepare-data-f          (or (prepare-data-f          %) {:body :server-error/unable-to-prepare-data          :status 500})
-                                                   populate-data-f         (or (populate-data-f         %) {:body :server-error/unable-to-populate-data         :status 500})
-                                                   hide-sensitive-values-f (or (hide-sensitive-values-f %) {:body :server-error/unable-to-hide-sensitive-values :status 500})
-                                                   parse-values-f          (or (parse-values-f          %) {:body :server-error/unable-to-parse-values          :status 500})
-                                                   unparse-values-f        (or (unparse-values-f        %) {:body :server-error/unable-to-unparse-values        :status 500})
-                                                   postpare-data-f         (or (postpare-data-f         %) {:body :server-error/unable-to-postpare-data         :status 500})
-                                                   :data-got                                               {:body %                                             :status 200})))))
+              ; After every provided security function has been passed, it applies the data validating / manipulating functions.
+              :getting-data ; The 'apply-cascade-f' function applies the given 'f' function (if any) on the given data, otherwise returns the data.
+                            (letfn [(apply-cascade-f [f data] (if f (f  data) data))]
+                                   (as-> initial-data % (or (apply-cascade-f get-data-f              %) {:body :server-error/unable-to-get-data              :status 500})
+                                                        (or (apply-cascade-f data-valid-f            %) {:body :server-error/unable-to-validate-data         :status 500})
+                                                        (or (apply-cascade-f prepare-data-f          %) {:body :server-error/unable-to-prepare-data          :status 500})
+                                                        (or (apply-cascade-f populate-data-f         %) {:body :server-error/unable-to-populate-data         :status 500})
+                                                        (or (apply-cascade-f hide-sensitive-values-f %) {:body :server-error/unable-to-hide-sensitive-values :status 500})
+                                                        (or (apply-cascade-f parse-values-f          %) {:body :server-error/unable-to-parse-values          :status 500})
+                                                        (or (apply-cascade-f unparse-values-f        %) {:body :server-error/unable-to-unparse-values        :status 500})
+                                                        (or (apply-cascade-f postpare-data-f         %) {:body :server-error/unable-to-postpare-data         :status 500})
+                                                        {:body % :status 200}))))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -170,7 +174,7 @@
   ; - For performing additional side effects use the 'additional-action-f' function.
   ; - For implementing additional security levels use the 'additional-security-f' function.
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
-  ; - The data validating and manipulating functions are applied as a cascade where every function takes the data as it has returned from
+  ; - The data validating / manipulating functions are applied as a cascade where every function takes the data as it has returned from
   ;   the previous function (except the first function that takes the initial data) and every function has to return the validated / manipulated
   ;   data in case of successful execution.
   ;   The cascade functions are applied in the following order:
@@ -185,7 +189,7 @@
   ;
   ; @param (map) request
   ; @param (*)(opt) initial-data
-  ; The 'initial-data' is passed over the data validating and manipulating functions that are applied as a cascade.
+  ; The 'initial-data' is passed over the data validating / manipulating functions that are applied as a cascade.
   ; Default: NIL
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
@@ -312,15 +316,18 @@
               (and permission-granted-f         (not (permission-granted-f)))             {:body :forbidden-request/permission-denied            :status 403}
               (and additional-security-f        (not (additional-security-f)))            {:body :unknown-error/additional-security-stage-failed :status 520}
               (and additional-action-f          (not (additional-action-f)))              {:body :unknown-error/additional-action-stage-failed   :status 520}
-              :storing-data (cond-> initial-data % data-valid-f          (or (data-valid-f          %) {:body :server-error/unable-to-validate-data       :status 500})
-                                                   prepare-data-f        (or (prepare-data-f        %) {:body :server-error/unable-to-prepare-data        :status 500})
-                                                   unpopulate-data-f     (or (unpopulate-data-f     %) {:body :server-error/unable-to-unpopulate-data     :status 500})
-                                                   remove-blank-values-f (or (remove-blank-values-f %) {:body :server-error/unable-to-remove-blank-values :status 500})
-                                                   parse-values-f        (or (parse-values-f        %) {:body :server-error/unable-to-parse-values        :status 500})
-                                                   unparse-values-f      (or (unparse-values-f      %) {:body :server-error/unable-to-unparse-values      :status 500})
-                                                   postpare-data-f       (or (postpare-data-f       %) {:body :server-error/unable-to-postpare-data       :status 500})
-                                                   store-data-f          (or (store-data-f          %) {:body :server-error/unable-to-store-data          :status 500})
-                                                   :data-stored                                        {:body :performed-request/data-stored              :status 200})))))
+              ; After every provided security function has been passed, it applies the data validating / manipulating functions.
+              :storing-data ; The 'apply-cascade-f' function applies the given 'f' function (if any) on the given data, otherwise returns the data.
+                            (letfn [(apply-cascade-f [f data] (if f (f  data) data))]
+                                   (as-> initial-data % (or (apply-cascade-f data-valid-f          %) {:body :server-error/unable-to-validate-data       :status 500})
+                                                        (or (apply-cascade-f prepare-data-f        %) {:body :server-error/unable-to-prepare-data        :status 500})
+                                                        (or (apply-cascade-f unpopulate-data-f     %) {:body :server-error/unable-to-unpopulate-data     :status 500})
+                                                        (or (apply-cascade-f remove-blank-values-f %) {:body :server-error/unable-to-remove-blank-values :status 500})
+                                                        (or (apply-cascade-f parse-values-f        %) {:body :server-error/unable-to-parse-values        :status 500})
+                                                        (or (apply-cascade-f unparse-values-f      %) {:body :server-error/unable-to-unparse-values      :status 500})
+                                                        (or (apply-cascade-f postpare-data-f       %) {:body :server-error/unable-to-postpare-data       :status 500})
+                                                        (or (apply-cascade-f store-data-f          %) {:body :server-error/unable-to-store-data          :status 500})
+                                                        {:body :performed-request/data-stored :status 200}))))))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -391,6 +398,7 @@
   [request {:keys [additional-action-f
                    additional-security-f
                    client-rate-limit-exceeded-f
+                   permission-granted-f
                    remove-data-f
                    user-rate-limit-exceeded-f]}]
   (let [ip-address (http/request->ip-address request)
