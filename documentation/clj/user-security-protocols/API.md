@@ -9,6 +9,8 @@
 
 - [create-user-account](#create-user-account)
 
+- [drop-user-session](#drop-user-session)
+
 - [recover-user-password](#recover-user-password)
 
 - [remove-user-account](#remove-user-account)
@@ -352,6 +354,137 @@
 
 (user-security-protocols.api/create-user-account ...)
 (create-user-account                             ...)
+```
+
+</details>
+
+---
+
+### drop-user-session
+
+```
+@description
+- Security protocol function for dropping a user session.
+- For performing additional side effects use the 'additional-action-f' function.
+- For implementing additional security levels use the 'additional-security-f' function.
+- Performs various security checks before returns a HTTP response indicating the result of the checks.
+```
+
+```
+@param (map) request
+@param (map) functions
+{:additional-action-f (function)(opt)
+  Custom side-effect function that is applied if no security check has been failed.
+  Must return TRUE in case of successful execution.
+ :additional-security-f (function)(opt)
+  Custom security function that is applied after the built-in security checks.
+  Must return TRUE in case of no security concern detected.
+ :client-rate-limit-exceeded-f (function)(opt)
+  Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+ :drop-user-session-f (function)
+  Must take the response as parameter, and remove the user session from it.
+  Must return NIL in case of any error.
+ :permission-granted-f (function)(opt)
+  Must return TRUE if the user has permission to do the action.
+ :user-authenticated-f (function)(opt)
+  Must return TRUE the user is authenticated / logged in.
+ :user-exists-f (function)(opt)
+  Must return TRUE the user exists.
+ :user-rate-limit-exceeded-f (function)(opt)
+  Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+```
+
+```
+@usage
+(drop-user-session {...} {...})
+```
+
+```
+@example
+(drop-user-session {...} {...})
+=>
+{:body :performed-request/user-session-dropped :status 200 :session {}}
+```
+
+```
+@example
+(defn my-route
+  [request]
+  (let [ip-address (-> request :remote-addr)
+        user-id    (-> request :session :user-id)]
+       (drop-user-session request {:client-rate-limit-exceeded-f #(my-log-service/too-many-attempts-by-ip-address? ip-address)
+                                   :drop-user-session-f          #(assoc % :session {})
+                                   :user-authenticated-f         #(my-validator/request-has-valid-session?         request)
+                                   :user-exists-f                #(my-database/user-id-exists?                     user-id)
+                                   :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-user-id?    user-id)})))
+=>
+{:body :performed-request/user-session-dropped :status 200 :session {}}
+```
+
+```
+@return (map)
+{:body (namespaced keyword)
+  :forbidden-request/permission-denied
+  (The user has no permission to do the action),
+  :forbidden-request/user-not-exists
+  (The user ID does not exist),
+  :forbidden-request/user-unauthenticated
+  (The user is unauthenticated / not logged in),
+  :invalid-request/invalid-ip-address
+  (No valid IP address has been found in the request),
+  :invalid-request/invalid-user-agent
+  (No valid user agent has been found in the request),
+  :performed-request/user-session-dropped
+  (The user session has been removed successfully),
+  :server-error/unable-to-drop-user-session
+  (The server cannot remove the user session from the HTTP response),
+  :unknown-error/additional-action-stage-failed
+  (The additional action function returned a false value),
+  :unknown-error/additional-security-stage-failed
+  (The additional security function returned a false value)
+ :status (integer)
+  200, 400, 429, 500, 520}
+```
+
+<details>
+<summary>Source code</summary>
+
+```
+(defn drop-user-session
+  [request {:keys [additional-action-f
+                   additional-security-f
+                   client-rate-limit-exceeded-f
+                   drop-user-session-f
+                   permission-granted-f
+                   user-authenticated-f
+                   user-exists-f
+                   user-rate-limit-exceeded-f]}]
+  (let [ip-address (http/request->ip-address request)
+        user-agent (http/request->user-agent request)]
+       (cond (not (audit/ip-address-valid? ip-address))                                  {:body :invalid-request/invalid-ip-address             :status 400}
+             (not (audit/user-agent-valid? user-agent))                                  {:body :invalid-request/invalid-user-agent             :status 400}
+             (and client-rate-limit-exceeded-f (boolean (client-rate-limit-exceeded-f))) {:body :too-many-requests/client-rate-limit-exceeded   :status 429}
+             (and user-rate-limit-exceeded-f   (boolean (user-rate-limit-exceeded-f)))   {:body :too-many-requests/user-rate-limit-exceeded     :status 429}
+             (and permission-granted-f         (not (permission-granted-f)))             {:body :forbidden-request/permission-denied            :status 403}
+             (and user-authenticated-f         (not (user-authenticated-f)))             {:body :forbidden-request/user-unauthenticated         :status 403}
+             (and user-exists-f                (not (user-exists-f)))                    {:body :forbidden-request/user-not-exists              :status 403}
+             (and additional-security-f        (not (additional-security-f)))            {:body :unknown-error/additional-security-stage-failed :status 520}
+             (and additional-action-f          (not (additional-action-f)))              {:body :unknown-error/additional-action-stage-failed   :status 520}
+             :dropping-user-session (if-let [response (drop-user-session-f {:body :performed-request/ready-to-drop-user-session :status 200})]
+                                            (->> {:body :performed-request/user-session-dropped   :status 200} (merge response))
+                                            (->  {:body :server-error/unable-to-drop-user-session :status 500})))))
+```
+
+</details>
+
+<details>
+<summary>Require</summary>
+
+```
+(ns my-namespace (:require [user-security-protocols.api :refer [drop-user-session]]))
+
+(user-security-protocols.api/drop-user-session ...)
+(drop-user-session                             ...)
 ```
 
 </details>

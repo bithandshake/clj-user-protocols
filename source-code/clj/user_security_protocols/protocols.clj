@@ -317,7 +317,7 @@
   ;                                    :drop-user-session-f          #(assoc % :session {})
   ;                                    :user-authenticated-f         #(my-validator/request-has-valid-session?         request)
   ;                                    :user-exists-f                #(my-database/user-id-exists?                     user-id)
-  ;                                    :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-user-id?    user-id}))
+  ;                                    :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-user-id?    user-id)})))
   ; =>
   ; {:body :performed-request/user-session-dropped :status 200 :session {}}
   ;
