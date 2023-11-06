@@ -1,5 +1,9 @@
 
-# user-security-protocols.api Clojure namespace
+### user-security-protocols.api
+
+Functional documentation of the user-security-protocols.api Clojure namespace
+
+---
 
 ##### [README](../../../README.md) > [DOCUMENTATION](../../COVER.md) > user-security-protocols.api
 
@@ -32,6 +36,8 @@
 - [verify-user-password](#verify-user-password)
 
 - [verify-user-pin-code](#verify-user-pin-code)
+
+---
 
 ### check-user-identifier
 
@@ -2381,5 +2387,5 @@
 
 ---
 
-This documentation is generated with the [clj-docs-generator](https://github.com/bithandshake/clj-docs-generator) engine.
+<sub>This documentation is generated with the [clj-docs-generator](https://github.com/bithandshake/clj-docs-generator) engine.</sub>
 

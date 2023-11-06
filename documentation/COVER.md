@@ -1,7 +1,11 @@
 
-# clj-security-protocols documentation
+### clj-security-protocols
 
-Documentation of the [clj-security-protocols](https://github.com/bithandshake/clj-security-protocols) Clojure library
+Functional documentation of the [clj-security-protocols](https://github.com/bithandshake/clj-security-protocols) Clojure library
+
+---
+
+
 
 ##### [README](../README.md) > DOCUMENTATION
 
@@ -12,5 +16,5 @@ Documentation of the [clj-security-protocols](https://github.com/bithandshake/cl
 
 ---
 
-This documentation is generated with the [clj-docs-generator](https://github.com/bithandshake/clj-docs-generator) engine.
+<sub>This documentation is generated with the [clj-docs-generator](https://github.com/bithandshake/clj-docs-generator) engine.</sub>
 

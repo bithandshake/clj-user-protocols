@@ -1,5 +1,9 @@
 
-# database-security-protocols.api Clojure namespace
+### database-security-protocols.api
+
+Functional documentation of the database-security-protocols.api Clojure namespace
+
+---
 
 ##### [README](../../../README.md) > [DOCUMENTATION](../../COVER.md) > database-security-protocols.api
 
@@ -10,6 +14,8 @@
 - [remove-data](#remove-data)
 
 - [store-data](#store-data)
+
+---
 
 ### get-data
 
@@ -520,5 +526,5 @@ Default: NIL
 
 ---
 
-This documentation is generated with the [clj-docs-generator](https://github.com/bithandshake/clj-docs-generator) engine.
+<sub>This documentation is generated with the [clj-docs-generator](https://github.com/bithandshake/clj-docs-generator) engine.</sub>
 
