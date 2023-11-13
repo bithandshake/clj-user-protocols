@@ -119,9 +119,9 @@
   ; - For performing additional side effects use the 'additional-action-f' function.
   ; - For implementing additional security levels use the 'additional-security-f' function.
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
-  ; - In case of the 'send-security-code-f' function is passed, no security check has been failed, and the user account is successfully created,
+  ; - In case the 'send-security-code-f' function is passed, no security check has been failed, and the user account is successfully created,
   ;   it applies the 'send-security-code-f' (it's a common scenario when user account creating followed by login code verification).
-  ; - In case of the 'provide-user-session-f' function is passed, the 'send-security-code-f' function is NOT passed, no security check has
+  ; - In case the 'provide-user-session-f' function is passed, the 'send-security-code-f' function is NOT passed, no security check has
   ;   been failed, and the user account is successfully created, it applies the 'provide-user-session-f' function on the HTTP response.
   ;
   ; @param (map) request
@@ -376,7 +376,7 @@
   ; - For performing additional side effects use the 'additional-action-f' function.
   ; - For implementing additional security levels use the 'additional-security-f' function.
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
-  ; - In case of the 'provide-user-session-f' function is passed, no security check has been failed, and the received security code is correct,
+  ; - In case the 'provide-user-session-f' function is passed, no security check has been failed, and the received security code is correct,
   ;   it applies the 'provide-user-session-f' function on the HTTP response.
   ;
   ; @param (map) request
@@ -1648,7 +1648,7 @@
   ; - For performing additional side effects use the 'additional-action-f' function.
   ; - For implementing additional security levels use the 'additional-security-f' function.
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
-  ; - In case of the 'provide-user-session-f' function is passed, no security check has been failed, and the received security code is correct,
+  ; - In case the 'provide-user-session-f' function is passed, no security check has been failed, and the received security code is correct,
   ;   it applies the 'provide-user-session-f' function on the HTTP response.
   ;
   ; @param (map) request
@@ -1820,9 +1820,9 @@
   ; - For performing additional side effects use the 'additional-action-f' function.
   ; - For implementing additional security levels use the 'additional-security-f' function.
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
-  ; - In case of the 'send-security-code-f' function is passed, no security check has been failed, and the received user password is correct,
+  ; - In case the 'send-security-code-f' function is passed, no security check has been failed, and the received user password is correct,
   ;   it applies the 'send-security-code-f' (it's a common scenario when the user credentials verification is followed by login code verification).
-  ; - In case of the 'provide-user-session-f' function is passed, the 'send-security-code-f' function is NOT passed, no security check has
+  ; - In case the 'provide-user-session-f' function is passed, the 'send-security-code-f' function is NOT passed, no security check has
   ;   been failed, and the received user password is correct, it applies the 'provide-user-session-f' function on the HTTP response.
   ;
   ; @param (map) request
