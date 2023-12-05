@@ -13,7 +13,7 @@
   ; - For implementing additional security levels use the 'additional-security-f' function.
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - The data validating / manipulating functions are applied as a cascade where every function takes the data as it has returned from
-  ;   the previous function (except the first function that takes the initial data) and every function has to return the validated / manipulated
+  ;   the previous function (except the first function that takes the initial data) and every function must return the validated / manipulated
   ;   data in case of successful execution.
   ;   The cascade functions are applied in the following order:
   ;   1. get-data-f
@@ -175,7 +175,7 @@
   ; - For implementing additional security levels use the 'additional-security-f' function.
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - The data validating / manipulating functions are applied as a cascade where every function takes the data as it has returned from
-  ;   the previous function (except the first function that takes the initial data) and every function has to return the validated / manipulated
+  ;   the previous function (except the first function that takes the initial data) and every function must return the validated / manipulated
   ;   data in case of successful execution.
   ;   The cascade functions are applied in the following order:
   ;   1. data-valid-f
