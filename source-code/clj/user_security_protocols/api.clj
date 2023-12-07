@@ -5,7 +5,7 @@
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-; user-security-protocols.protocols
+; @redirect (user-security-protocols.protocols)
 (def check-user-identifier                protocols/check-user-identifier)
 (def create-user-account                  protocols/create-user-account)
 (def drop-user-session                    protocols/drop-user-session)
