@@ -1,7 +1,7 @@
 
 (ns database-security-protocols.protocols
-    (:require [audit.api :as audit]
-              [http.api  :as http]))
+    (:require [fruits.audit.api :as audit]
+              [fruits.http.api  :as http]))
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
