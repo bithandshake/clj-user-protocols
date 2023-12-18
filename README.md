@@ -10,7 +10,7 @@ for database, media upload and user handling in Clojure projects.
 
 ```
 {:deps {bithandshake/clj-security-protocols {:git/url "https://github.com/bithandshake/clj-security-protocols"
-                                             :sha     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}}
+                                             :sha     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}}}
 ```
 
 ### Current version

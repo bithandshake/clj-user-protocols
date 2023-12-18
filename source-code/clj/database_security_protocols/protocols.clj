@@ -15,7 +15,7 @@
   ; - The data validating / manipulating functions are applied as a cascade where every function takes the data as it has returned from
   ;   the previous function (except the first function that takes the initial data) and every function must return the validated / manipulated
   ;   data in case of successful execution.
-  ;   The cascade functions are applied in the following order:
+  ;   Functions are applied in the following order:
   ;   1. get-data-f
   ;   2. data-valid-f
   ;   3. prepare-data-f
@@ -27,7 +27,7 @@
   ;
   ; @param (map) request
   ; @param (*)(opt) initial-data
-  ; The 'initial-data' is passed over the data validating / manipulating functions that are applied as a cascade.
+  ; The 'initial-data' is passed through the data validating / manipulating functions (that are applied as a cascade).
   ; Default: NIL
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
@@ -177,7 +177,7 @@
   ; - The data validating / manipulating functions are applied as a cascade where every function takes the data as it has returned from
   ;   the previous function (except the first function that takes the initial data) and every function must return the validated / manipulated
   ;   data in case of successful execution.
-  ;   The cascade functions are applied in the following order:
+  ;   Functions are applied in the following order:
   ;   1. data-valid-f
   ;   2. prepare-data-f
   ;   3. unpopulate-data-f
@@ -189,7 +189,7 @@
   ;
   ; @param (map) request
   ; @param (*)(opt) initial-data
-  ; The 'initial-data' is passed over the data validating / manipulating functions that are applied as a cascade.
+  ; The 'initial-data' is passed over the data validating / manipulating functions (that are applied as a cascade).
   ; Default: NIL
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
