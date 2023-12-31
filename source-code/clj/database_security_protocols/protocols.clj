@@ -153,7 +153,7 @@
               (and additional-security-f        (not (additional-security-f)))            {:body :unknown-error/additional-security-stage-failed :status 520}
               (and additional-action-f          (not (additional-action-f)))              {:body :unknown-error/additional-action-stage-failed   :status 520}
               ; After every provided security function has been passed, it applies the data validating / manipulating functions.
-              :getting-data ; The 'apply-cascade-f' function applies the given 'f' function (if any) on the given data, otherwise returns the data.
+              :getting-data ; The 'apply-cascade-f' function applies the given 'f' function (if any) on the given data. Otherwise, it returns the data.
                             (letfn [(apply-cascade-f [f data] (if f (f  data) data))]
                                    (as-> initial-data % (or (apply-cascade-f get-data-f              %) {:body :server-error/unable-to-get-data              :status 500})
                                                         (or (apply-cascade-f data-valid-f            %) {:body :server-error/unable-to-validate-data         :status 500})
@@ -317,7 +317,7 @@
               (and additional-security-f        (not (additional-security-f)))            {:body :unknown-error/additional-security-stage-failed :status 520}
               (and additional-action-f          (not (additional-action-f)))              {:body :unknown-error/additional-action-stage-failed   :status 520}
               ; After every provided security function has been passed, it applies the data validating / manipulating functions.
-              :storing-data ; The 'apply-cascade-f' function applies the given 'f' function (if any) on the given data, otherwise returns the data.
+              :storing-data ; The 'apply-cascade-f' function applies the given 'f' function (if any) on the given data. Otherwise, it returns the data.
                             (letfn [(apply-cascade-f [f data] (if f (f  data) data))]
                                    (as-> initial-data % (or (apply-cascade-f data-valid-f          %) {:body :server-error/unable-to-validate-data       :status 500})
                                                         (or (apply-cascade-f prepare-data-f        %) {:body :server-error/unable-to-prepare-data        :status 500})
