@@ -7,6 +7,9 @@
 ;; ----------------------------------------------------------------------------
 
 (defn get-data
+  ; @important
+  ; This function is incomplete and may not behave as expected.
+  ;
   ; @description
   ; - Security protocol function for getting data from the database.
   ; - For performing additional side effects use the 'additional-action-f' function.
@@ -27,7 +30,7 @@
   ;
   ; @param (map) request
   ; @param (*)(opt) initial-data
-  ; The 'initial-data' is passed through the data validating / manipulating functions (that are applied as a cascade).
+  ; The 'initial-data' passed through the data validating / manipulating functions (that are applied as a cascade).
   ; Default: NIL
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
@@ -169,6 +172,9 @@
 ;; ----------------------------------------------------------------------------
 
 (defn store-data
+  ; @important
+  ; This function is incomplete and may not behave as expected.
+  ;
   ; @description
   ; - Security protocol function for storing data in the database.
   ; - For performing additional side effects use the 'additional-action-f' function.
@@ -189,7 +195,7 @@
   ;
   ; @param (map) request
   ; @param (*)(opt) initial-data
-  ; The 'initial-data' is passed over the data validating / manipulating functions (that are applied as a cascade).
+  ; The 'initial-data' passed through the data validating / manipulating functions (that are applied as a cascade).
   ; Default: NIL
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)
@@ -333,6 +339,9 @@
 ;; ----------------------------------------------------------------------------
 
 (defn remove-data
+  ; @important
+  ; This function is incomplete and may not behave as expected.
+  ;
   ; @description
   ; - Security protocol function for removing data from the database.
   ; - For performing additional side effects use the 'additional-action-f' function.
