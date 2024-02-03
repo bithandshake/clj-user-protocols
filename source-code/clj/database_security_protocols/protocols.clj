@@ -76,58 +76,43 @@
   ; @usage
   ; (get-data {...} {...} {...})
   ;
-  ; @example
+  ; @usage
   ; (get-data {...} {...} {...})
   ; =>
   ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
   ;
-  ; @example
+  ; @usage
   ; (defn my-route
   ;   [request]
   ;   (let [ip-address (-> request :remote-addr)
   ;         user-id    (-> request :session :user-id)]
-  ;        (get-data request {:my-string "My string"}
+  ;        (get-data request {:my-data "My initial data (optional)"}
   ;                          {:client-rate-limit-exceeded-f #(my-log-service/too-many-attempts-by-ip-address? ip-address)
-  ;                           :data-valid-f                 #(and (map? %) %)
+  ;                           :data-valid-f                 #(map? %)
   ;                           :get-data-f                   #(my-database/get-data!             %)
   ;                           :parse-values-f               #(my-utils/parse-timestamps-in-data %)
   ;                           :populate-data-f              #(my-utils/add-user-related-values  %)
   ;                           :user-rate-limit-exceeded-f   #(my-log-service/too-many-attempts-by-user-id? user-id)})))
   ; =>
-  ; {:body :performed-request/data-stored :status 200}
+  ; {:body {:my-data "..."} :status 200}
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/permission-denied
-  ;   (The user has no permission to do the action),
-  ;   :invalid-request/invalid-ip-address
-  ;   (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent
-  ;   (No valid user agent has been found in the request),
-  ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value),
-  ;   :unknown-error/additional-security-stage-failed
-  ;   (The additional security function returned a false value)
-  ;   :server-error/unable-to-get-data
-  ;   (The 'get-data-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-hide-sensitive-values
-  ;   (The 'hide-sensitive-values-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-parse-values
-  ;   (The 'parse-values-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-populate-data
-  ;   (The 'populate-data-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-postpare-data
-  ;   (The 'postpare-data-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-prepare-data
-  ;   (The 'prepare-data-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-unparse-values
-  ;   (The 'unparse-values-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-validate-data
-  ;   (The 'data-valid-f' function has been returned a falsish value)
+  ;   :forbidden-request/permission-denied            (The user has no permission to do the action),
+  ;   :invalid-request/invalid-ip-address             (No valid IP address has been found in the request),
+  ;   :invalid-request/invalid-user-agent             (No valid user agent has been found in the request),
+  ;   :too-many-requests/client-rate-limit-exceeded   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
+  ;   :too-many-requests/user-rate-limit-exceeded     (Too many actions have been attempted by the user in a specific timeframe),
+  ;   :unknown-error/additional-action-stage-failed   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed (The additional security function returned a false value)
+  ;   :server-error/unable-to-get-data                (The 'get-data-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-hide-sensitive-values   (The 'hide-sensitive-values-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-parse-values            (The 'parse-values-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-populate-data           (The 'populate-data-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-postpare-data           (The 'postpare-data-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-prepare-data            (The 'prepare-data-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-unparse-values          (The 'unparse-values-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-validate-data           (The 'data-valid-f' function has been returned a falsish value)
   ;  :status (integer)
   ;   200, 400, 403, 429, 500, 520}
   ([request functions]
@@ -241,19 +226,19 @@
   ; @usage
   ; (store-data {...} {...} {...})
   ;
-  ; @example
+  ; @usage
   ; (store-data {...} {...} {...})
   ; =>
   ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
   ;
-  ; @example
+  ; @usage
   ; (defn my-route
   ;   [request]
   ;   (let [ip-address (-> request :remote-addr)
   ;         user-id    (-> request :session :user-id)]
-  ;        (store-data request {:my-string "My string"}
+  ;        (store-data request {:my-data "My initial data (optional)"}
   ;                            {:client-rate-limit-exceeded-f #(my-log-service/too-many-attempts-by-ip-address? ip-address)
-  ;                             :data-valid-f                 #(and (map? %) %)
+  ;                             :data-valid-f                 #(map? %)
   ;                             :parse-values-f               #(my-utils/parse-timestamps-in-data   %)
   ;                             :store-data-f                 #(my-database/store-data!             %)
   ;                             :unpopulate-data-f            #(my-utils/remove-user-related-values %)
@@ -263,38 +248,22 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/permission-denied
-  ;   (The user has no permission to do the action),
-  ;   :invalid-request/invalid-ip-address
-  ;   (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent
-  ;   (No valid user agent has been found in the request),
-  ;   :performed-request/data-stored
-  ;   (The provided data has been successfully stored)
-  ;   :server-error/unable-to-parse-values
-  ;   (The 'parse-values-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-postpare-data
-  ;   (The 'postpare-data-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-prepare-data
-  ;   (The 'prepare-data-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-remove-blank-values
-  ;   (The 'remove-blank-values-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-store-data
-  ;   (The 'store-data-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-unparse-values
-  ;   (The 'unparse-values-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-unpopulate-data
-  ;   (The 'unpopulate-data-f' function has been returned a falsish value),
-  ;   :server-error/unable-to-validate-data
-  ;   (The 'data-valid-f' function has been returned a falsish value),
-  ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value),
-  ;   :unknown-error/additional-security-stage-failed
-  ;   (The additional security function returned a false value)
+  ;   :forbidden-request/permission-denied            (The user has no permission to do the action),
+  ;   :invalid-request/invalid-ip-address             (No valid IP address has been found in the request),
+  ;   :invalid-request/invalid-user-agent             (No valid user agent has been found in the request),
+  ;   :performed-request/data-stored                  (The provided data has been successfully stored)
+  ;   :server-error/unable-to-parse-values            (The 'parse-values-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-postpare-data           (The 'postpare-data-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-prepare-data            (The 'prepare-data-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-remove-blank-values     (The 'remove-blank-values-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-store-data              (The 'store-data-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-unparse-values          (The 'unparse-values-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-unpopulate-data         (The 'unpopulate-data-f' function has been returned a falsish value),
+  ;   :server-error/unable-to-validate-data           (The 'data-valid-f' function has been returned a falsish value),
+  ;   :too-many-requests/client-rate-limit-exceeded   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
+  ;   :too-many-requests/user-rate-limit-exceeded     (Too many actions have been attempted by the user in a specific timeframe),
+  ;   :unknown-error/additional-action-stage-failed   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 403, 429, 500, 520}
   ([request functions]
@@ -366,12 +335,12 @@
   ; @usage
   ; (remove-data {...} {...})
   ;
-  ; @example
+  ; @usage
   ; (remove-data {...} {...})
   ; =>
   ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
   ;
-  ; @example
+  ; @usage
   ; (defn my-route
   ;   [request]
   ;   (let [ip-address (-> request :remote-addr)
@@ -384,24 +353,15 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/permission-denied
-  ;   (The user has no permission to do the action),
-  ;   :invalid-request/invalid-ip-address
-  ;   (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent
-  ;   (No valid user agent has been found in the request),
-  ;   :performed-request/data-removed
-  ;   (The data has been successfully removed)
-  ;   :server-error/unable-to-remove-data
-  ;   (The 'remove-data-f' function has been returned a falsish value),
-  ;   :too-many-requests/client-rate-limit-exceeded
-  ;   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded
-  ;   (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unknown-error/additional-action-stage-failed
-  ;   (The additional action function returned a false value),
-  ;   :unknown-error/additional-security-stage-failed
-  ;   (The additional security function returned a false value)
+  ;   :forbidden-request/permission-denied            (The user has no permission to do the action),
+  ;   :invalid-request/invalid-ip-address             (No valid IP address has been found in the request),
+  ;   :invalid-request/invalid-user-agent             (No valid user agent has been found in the request),
+  ;   :performed-request/data-removed                 (The data has been successfully removed)
+  ;   :server-error/unable-to-remove-data             (The 'remove-data-f' function has been returned a falsish value),
+  ;   :too-many-requests/client-rate-limit-exceeded   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
+  ;   :too-many-requests/user-rate-limit-exceeded     (Too many actions have been attempted by the user in a specific timeframe),
+  ;   :unknown-error/additional-action-stage-failed   (The additional action function returned a false value),
+  ;   :unknown-error/additional-security-stage-failed (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 403, 429, 500, 520}
   [request {:keys [additional-action-f
