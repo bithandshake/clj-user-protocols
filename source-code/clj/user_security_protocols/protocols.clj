@@ -8,32 +8,24 @@
 
 (defn check-user-identifier
   ; @description
-  ; - Security protocol function for checking a user identifier (email address / phone number / username) (for authenticated / unauthenticated users)
-  ;   whether it is registered and/or verified.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for checking a user identifier (email address / phone number / username) (for authenticated / unauthenticated users)
+  ; whether it is registered and/or verified.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :user-identifier-registered-f (function)
-  ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
-  ;  :user-identifier-valid-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (email address / phone number / username) is valid.
-  ;  :user-identifier-verified-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)        Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt) Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)         Must return TRUE if the user has permission to do the action.
+  ;  :user-identifier-registered-f (function)      Must return TRUE if the received user identifier (email address / phone number / username) is registered.
+  ;  :user-identifier-valid-f (function)(opt)      Must return TRUE if the received user identifier (email address / phone number / username) is valid.
+  ;  :user-identifier-verified-f (function)(opt)   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
+  ;  :user-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (check-user-identifier {...} {...})
@@ -102,10 +94,12 @@
 
 (defn create-user-account
   ; @description
-  ; - Security protocol function for creating a user account that is identified by a user identifier (email address / phone number / username)
-  ;   and protected by a password.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for creating a user account that is identified by a user identifier (email address / phone number / username)
+  ; and protected by a password.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - In case the 'send-security-code-f' function is passed, no security check has been failed, and the user account is successfully created,
   ;   it applies the 'send-security-code-f' (it's a common scenario when user account creating followed by login code verification).
@@ -114,39 +108,20 @@
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :create-user-f (function)
-  ;   Side-effect function for creating the user account, applied after and if every security check passed.
-  ;   Must return TRUE if the user account has been successfully created.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :provide-user-session-f (function)(opt)
-  ;   Must take the response as parameter, and associate a user session to it.
-  ;   Must return NIL in case of any error.
-  ;  :send-security-code-f (function)(opt)
-  ;   Must return TRUE if the security code email / SMS has been successfully sent.
-  ;  :send-welcome-message-f (function)(opt)
-  ;   Optional side-effect function for sending a welcome message to the user, applied after and if every security check passed.
-  ;   Must return TRUE if the welcome email / SMS has been successfully sent.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-data-valid-f (function)(opt)
-  ;   Must return TRUE if the received user data is valid.
-  ;  :user-identifier-registered-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
-  ;  :user-identifier-valid-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (email address / phone number / username) is valid.
-  ;  :user-password-valid-f (function)(opt)
-  ;   Must return TRUE if the received user password is valid.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)        Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt) Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :create-user-f (function)                     Side-effect function for creating the user account. Applied when every security check has been passed. Must return TRUE if the user account has been successfully created.
+  ;  :permission-granted-f (function)(opt)         Must return TRUE if the user has permission to do the action.
+  ;  :provide-user-session-f (function)(opt)       Must take the response as parameter, and associate a user session to it (return NIL in case of error).
+  ;  :send-security-code-f (function)(opt)         Must return TRUE if the security code email / SMS has been successfully sent.
+  ;  :send-welcome-message-f (function)(opt)       Optional side-effect function for sending a welcome message to the user. Applied when every security check has been passed. Must return TRUE if the welcome email / SMS has been successfully sent.
+  ;  :user-authenticated-f (function)(opt)         Must return TRUE the user is authenticated / logged in.
+  ;  :user-data-valid-f (function)(opt)            Must return TRUE if the received user data is valid.
+  ;  :user-identifier-registered-f (function)(opt) Must return TRUE if the received user identifier (email address / phone number / username) is registered.
+  ;  :user-identifier-valid-f (function)(opt)      Must return TRUE if the received user identifier (email address / phone number / username) is valid.
+  ;  :user-password-valid-f (function)(opt)        Must return TRUE if the received user password is valid.
+  ;  :user-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (create-user-account {...} {...})
@@ -243,32 +218,23 @@
 
 (defn drop-user-session
   ; @description
-  ; - Security protocol function for dropping a user session.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for dropping a user session.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response indicating the result of the checks.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :drop-user-session-f (function)
-  ;   Must take the response as parameter, and remove the user session from it.
-  ;   Must return NIL in case of any error.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-exists-f (function)(opt)
-  ;   Must return TRUE the user exists.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)        Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt) Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :drop-user-session-f (function)               Must take the response as parameter, and remove the user session from it (return NIL in case of error).
+  ;  :permission-granted-f (function)(opt)         Must return TRUE if the user has permission to do the action.
+  ;  :user-authenticated-f (function)(opt)         Must return TRUE the user is authenticated / logged in.
+  ;  :user-exists-f (function)(opt)                Must return TRUE the user exists.
+  ;  :user-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (drop-user-session {...} {...})
@@ -333,53 +299,34 @@
 
 (defn recover-user-password
   ; @description
-  ; - Security protocol function for user password recovering (for authenticated users) with optional security code verification.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for user password recovering (for authenticated users) with optional security code verification.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - In case the 'provide-user-session-f' function is passed, no security check has been failed, and the received security code is correct,
   ;   it applies the 'provide-user-session-f' function on the HTTP response.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :fresh-password-valid-f (function)
-  ;   Must return TRUE if the received fresh password is valid.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :provide-user-session-f (function)(opt)
-  ;   Must take the response as parameter, and associate a user session to it.
-  ;   Must return NIL in case of any error.
-  ;  :recover-user-password-f (function)
-  ;   Side-effect function for recovering the user's password, applied after and if every security check passed.
-  ;   Must return TRUE if the user's password has been successfully recovered.
-  ;  :security-code-correct-f (function)(opt)
-  ;   Must return TRUE if the received security code is correct.
-  ;  :security-code-device-matches-f (function)(opt)
-  ;   Must return TRUE if the received security code has been required from the same device.
-  ;  :security-code-expired-f (function)(opt)
-  ;   Must return TRUE if the received security code has been expired.
-  ;  :security-code-sent-f (function)(opt)
-  ;   Must return TRUE if a security code has been sent.
-  ;  :security-code-valid-f (function)(opt)
-  ;   Must return TRUE if the received security code is valid.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-identifier-registered-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
-  ;  :user-identifier-valid-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (email address / phone number / username) is valid.
-  ;  :user-identifier-verified-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)            Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)          Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :fresh-password-valid-f (function)              Must return TRUE if the received fresh password is valid.
+  ;  :permission-granted-f (function)(opt)           Must return TRUE if the user has permission to do the action.
+  ;  :provide-user-session-f (function)(opt)         Must take the response as parameter, and associate a user session to it (return NIL in case of error).
+  ;  :recover-user-password-f (function)             Side-effect function for recovering the user's password. Applied when every security check has been passed. Must return TRUE if the user's password has been successfully recovered.
+  ;  :security-code-correct-f (function)(opt)        Must return TRUE if the received security code is correct.
+  ;  :security-code-device-matches-f (function)(opt) Must return TRUE if the received security code has been required from the same device.
+  ;  :security-code-expired-f (function)(opt)        Must return TRUE if the received security code has been expired.
+  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent.
+  ;  :security-code-valid-f (function)(opt)          Must return TRUE if the received security code is valid.
+  ;  :user-authenticated-f (function)(opt)           Must return TRUE the user is authenticated / logged in.
+  ;  :user-identifier-registered-f (function)(opt)   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
+  ;  :user-identifier-valid-f (function)(opt)        Must return TRUE if the received user identifier (email address / phone number / username) is valid.
+  ;  :user-identifier-verified-f (function)(opt)     Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
+  ;  :user-rate-limit-exceeded-f (function)(opt)     Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (recover-user-password {...} {...})
@@ -488,52 +435,32 @@
 
 (defn remove-user-account
   ; @description
-  ; - Security protocol function for user account removal (for authenticated users) with optional user password and/or security code verification.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for user account removal (for authenticated users) with optional user password and/or security code verification.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :drop-user-session-f (function)(opt)
-  ;   Must take the response as parameter, and remove the user session from it.
-  ;   Must return NIL in case of any error.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :remove-user-account-f (function)
-  ;   Side-effect function for removing the user account, applied after and if every security check passed.
-  ;   Must return TRUE if the user account has been successfully removed.
-  ;  :security-code-correct-f (function)(opt)
-  ;   Must return TRUE if the received security code is correct.
-  ;  :security-code-device-matches-f (function)(opt)
-  ;   Must return TRUE if the received security code has been required from the same device.
-  ;  :security-code-expired-f (function)(opt)
-  ;   Must return TRUE if the received security code has been expired.
-  ;  :security-code-sent-f (function)(opt)
-  ;   Must return TRUE if a security code has been sent.
-  ;  :security-code-valid-f (function)(opt)
-  ;   Must return TRUE if the received security code is valid.
-  ;  :send-goodbye-message-f (function)(opt)
-  ;   Optional side-effect function for sending a goodbye message to the user, applied after and if every security check passed.
-  ;   Must return TRUE if the goodbye email / SMS has been successfully sent.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-exists-f (function)(opt)
-  ;   Must return TRUE the user exists.
-  ;  :user-password-correct-f (function)(opt)
-  ;   Must return TRUE if the received user password is correct.
-  ;  :user-password-valid-f (function)(opt)
-  ;   Must return TRUE if the received user password is valid.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)             Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)           Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt)    Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :drop-user-session-f (function)(opt)             Must take the response as parameter, and remove the user session from it (return NIL in case of error).
+  ;  :permission-granted-f (function)(opt)            Must return TRUE if the user has permission to do the action.
+  ;  :remove-user-account-f (function)                Side-effect function for removing the user account. Applied when every security check has been passed. Must return TRUE if the user account has been successfully removed.
+  ;  :security-code-correct-f (function)(opt)         Must return TRUE if the received security code is correct.
+  ;  :security-code-device-matches-f (function)(opt)  Must return TRUE if the received security code has been required from the same device.
+  ;  :security-code-expired-f (function)(opt)         Must return TRUE if the received security code has been expired.
+  ;  :security-code-sent-f (function)(opt)            Must return TRUE if a security code has been sent.
+  ;  :security-code-valid-f (function)(opt)           Must return TRUE if the received security code is valid.
+  ;  :send-goodbye-message-f (function)(opt)          Optional side-effect function for sending a goodbye message to the user. Applied when every security check has been passed. Must return TRUE if the goodbye email / SMS has been successfully sent.
+  ;  :user-authenticated-f (function)(opt)            Must return TRUE the user is authenticated / logged in.
+  ;  :user-exists-f (function)(opt)                   Must return TRUE the user exists.
+  ;  :user-password-correct-f (function)(opt)         Must return TRUE if the received user password is correct.
+  ;  :user-password-valid-f (function)(opt)           Must return TRUE if the received user password is valid.
+  ;  :user-rate-limit-exceeded-f (function)(opt)      Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (remove-user-account {...} {...})
@@ -641,32 +568,23 @@
 
 (defn send-security-code-authenticated
   ; @description
-  ; - Security protocol function for security code sending via email / SMS (for authenticated users).
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for security code sending via email / SMS (for authenticated users).
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :send-security-code-f (function)
-  ;   Side-effect function for sending the security code to the user, applied after and if every security check passed.
-  ;   Must return TRUE if the security code email / SMS has been successfully sent.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-exists-f (function)(opt)
-  ;   Must return TRUE the user exists.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)        Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt) Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)         Must return TRUE if the user has permission to do the action.
+  ;  :send-security-code-f (function)              Side-effect function for sending the security code to the user. Applied when every security check has been passed. Must return TRUE if the security code email / SMS has been successfully sent.
+  ;  :user-authenticated-f (function)(opt)         Must return TRUE the user is authenticated / logged in.
+  ;  :user-exists-f (function)(opt)                Must return TRUE the user exists.
+  ;  :user-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (send-security-code-authenticated {...} {...})
@@ -732,36 +650,25 @@
 
 (defn send-security-code-unauthenticated
   ; @description
-  ; - Security protocol function for security code sending via email / SMS (for unauthenticated users).
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for security code sending via email / SMS (for unauthenticated users).
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :send-security-code-f (function)
-  ;   Side-effect function for sending the security code to the user, applied after and if every security check passed.
-  ;   Must return TRUE if the security code email / SMS has been successfully sent.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-identifier-registered-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
-  ;  :user-identifier-valid-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (email address / phone number / username) is valid.
-  ;  :user-identifier-verified-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)        Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt) Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)         Must return TRUE if the user has permission to do the action.
+  ;  :send-security-code-f (function)              Side-effect function for sending the security code to the user. Applied when every security check has been passed. Must return TRUE if the security code email / SMS has been successfully sent.
+  ;  :user-authenticated-f (function)(opt)         Must return TRUE the user is authenticated / logged in.
+  ;  :user-identifier-registered-f (function)(opt) Must return TRUE if the received user identifier (email address / phone number / username) is registered.
+  ;  :user-identifier-valid-f (function)(opt)      Must return TRUE if the received user identifier (email address / phone number / username) is valid.
+  ;  :user-identifier-verified-f (function)(opt)   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
+  ;  :user-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (send-security-code-unauthenticated {...} {...})
@@ -835,51 +742,33 @@
 
 (defn update-user-contact
   ; @description
-  ; - Security protocol function for user contact (email address / phone number) update (for authenticated users) with optional user password
-  ;   and/or security code verification.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for user contact (email address / phone number) update (for authenticated users) with optional user password
+  ; and/or security code verification.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :security-code-correct-f (function)(opt)
-  ;   Must return TRUE if the received security code is correct.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :security-code-device-matches-f (function)(opt)
-  ;   Must return TRUE if the received security code has been required from the same device.
-  ;  :security-code-expired-f (function)(opt)
-  ;   Must return TRUE if the received security code has been expired.
-  ;  :security-code-sent-f (function)(opt)
-  ;   Must return TRUE if a security code has been sent.
-  ;  :security-code-valid-f (function)(opt)
-  ;   Must return TRUE if the received security code is valid.
-  ;  :update-user-contact-f (function)
-  ;   Side-effect function for updating the user contact, applied after and if every security check passed.
-  ;   Must return TRUE if the user contact (email address / phone number) has been successfully updated.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-contact-registered-f (function)(opt)
-  ;   Must return TRUE if the received user contact (email address / phone number) is registered.
-  ;  :user-contact-valid-f (function)(opt)
-  ;   Must return TRUE if the received user contact (email address / phone number) is valid.
-  ;  :user-exists-f (function)(opt)
-  ;   Must return TRUE the user exists.
-  ;  :user-password-correct-f (function)(opt)
-  ;   Must return TRUE if the received user password is correct.
-  ;  :user-password-valid-f (function)(opt)
-  ;   Must return TRUE if the received user password is valid.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)            Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)          Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :security-code-correct-f (function)(opt)        Must return TRUE if the received security code is correct.
+  ;  :permission-granted-f (function)(opt)           Must return TRUE if the user has permission to do the action.
+  ;  :security-code-device-matches-f (function)(opt) Must return TRUE if the received security code has been required from the same device.
+  ;  :security-code-expired-f (function)(opt)        Must return TRUE if the received security code has been expired.
+  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent.
+  ;  :security-code-valid-f (function)(opt)          Must return TRUE if the received security code is valid.
+  ;  :update-user-contact-f (function)               Side-effect function for updating the user contact. Applied when every security check has been passed. Must return TRUE if the user contact (email address / phone number) has been successfully updated.
+  ;  :user-authenticated-f (function)(opt)           Must return TRUE the user is authenticated / logged in.
+  ;  :user-contact-registered-f (function)(opt)      Must return TRUE if the received user contact (email address / phone number) is registered.
+  ;  :user-contact-valid-f (function)(opt)           Must return TRUE if the received user contact (email address / phone number) is valid.
+  ;  :user-exists-f (function)(opt)                  Must return TRUE the user exists.
+  ;  :user-password-correct-f (function)(opt)        Must return TRUE if the received user password is correct.
+  ;  :user-password-valid-f (function)(opt)          Must return TRUE if the received user password is valid.
+  ;  :user-rate-limit-exceeded-f (function)(opt)     Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (update-user-contact {...} {...})
@@ -984,35 +873,25 @@
 
 (defn update-user-data
   ; @description
-  ; - Security protocol function for user data update (for authenticated users).
-  ; - For updating user contact (email address / phone number), username, or user password use the specific functions!
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for user data update (for authenticated users).
+  ;
+  ; @note
+  ; - For updating user contact data (email address / phone number), or username, or user password use (the) specific protocol functions for these actions!
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :update-user-data-f (function)
-  ;   Side-effect function for updating the user data, applied after and if every security check passed.
-  ;   Must return TRUE if the user data has been successfully updated.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-data-valid-f (function)(opt)
-  ;   Must return TRUE if the received user data is valid.
-  ;  :user-exists-f (function)(opt)
-  ;   Must return TRUE the user exists.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)        Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt) Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)         Must return TRUE if the user has permission to do the action.
+  ;  :update-user-data-f (function)                Side-effect function for updating the user data. Applied when every security check has been passed. Must return TRUE if the user data has been successfully updated.
+  ;  :user-authenticated-f (function)(opt)         Must return TRUE the user is authenticated / logged in.
+  ;  :user-data-valid-f (function)(opt)            Must return TRUE if the received user data is valid.
+  ;  :user-exists-f (function)(opt)                Must return TRUE the user exists.
+  ;  :user-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (update-user-data {...} {...})
@@ -1083,48 +962,31 @@
 
 (defn update-user-password
   ; @description
-  ; - Security protocol function for user account password update (for authenticated users) with optional user password and/or security code verification.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for user account password update (for authenticated users) with optional user password and/or security code verification.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :fresh-password-valid-f (function)(opt)
-  ;   Must return TRUE if the received fresh password is valid.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :security-code-correct-f (function)(opt)
-  ;   Must return TRUE if the received security code is correct.
-  ;  :security-code-device-matches-f (function)(opt)
-  ;   Must return TRUE if the received security code has been required from the same device.
-  ;  :security-code-expired-f (function)(opt)
-  ;   Must return TRUE if the received security code has been expired.
-  ;  :security-code-sent-f (function)(opt)
-  ;   Must return TRUE if a security code has been sent.
-  ;  :security-code-valid-f (function)(opt)
-  ;   Must return TRUE if the received security code is valid.
-  ;  :update-user-password-f (function)
-  ;   Side-effect function for updating the user's password, applied after and if every security check passed.
-  ;   Must return TRUE if the user's password has been successfully updated.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-exists-f (function)(opt)
-  ;   Must return TRUE the user exists.
-  ;  :user-password-correct-f (function)(opt)
-  ;   Must return TRUE if the received user password is correct.
-  ;  :user-password-valid-f (function)(opt)
-  ;   Must return TRUE if the received user password is valid.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)            Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)          Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :fresh-password-valid-f (function)(opt)         Must return TRUE if the received fresh password is valid.
+  ;  :permission-granted-f (function)(opt)           Must return TRUE if the user has permission to do the action.
+  ;  :security-code-correct-f (function)(opt)        Must return TRUE if the received security code is correct.
+  ;  :security-code-device-matches-f (function)(opt) Must return TRUE if the received security code has been required from the same device.
+  ;  :security-code-expired-f (function)(opt)        Must return TRUE if the received security code has been expired.
+  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent.
+  ;  :security-code-valid-f (function)(opt)          Must return TRUE if the received security code is valid.
+  ;  :update-user-password-f (function)              Side-effect function for updating the user's password. Applied when every security check has been passed. Must return TRUE if the user's password has been successfully updated.
+  ;  :user-authenticated-f (function)(opt)           Must return TRUE the user is authenticated / logged in.
+  ;  :user-exists-f (function)(opt)                  Must return TRUE the user exists.
+  ;  :user-password-correct-f (function)(opt)        Must return TRUE if the received user password is correct.
+  ;  :user-password-valid-f (function)(opt)          Must return TRUE if the received user password is valid.
+  ;  :user-rate-limit-exceeded-f (function)(opt)     Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (update-user-password {...} {...})
@@ -1225,40 +1087,27 @@
 
 (defn update-username
   ; @description
-  ; - Security protocol function for updating a username (for authenticated users) with optional password verification.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for updating a username (for authenticated users) with optional password verification.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :update-username-f (function)
-  ;   Side-effect function for updating the username, applied after and if every security check passed.
-  ;   Must return TRUE if the username has been successfully updated.
-  ;  :username-registered-f (function)(opt)
-  ;   Must return TRUE if the received username is registered.
-  ;  :username-valid-f (function)(opt)
-  ;   Must return TRUE if the received username is valid.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-exists-f (function)(opt)
-  ;   Must return TRUE the user exists.
-  ;  :user-password-correct-f (function)(opt)
-  ;   Must return TRUE if the received user password is correct.
-  ;  :user-password-valid-f (function)(opt)
-  ;   Must return TRUE if the received user password is valid.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)        Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt) Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)         Must return TRUE if the user has permission to do the action.
+  ;  :update-username-f (function)                 Side-effect function for updating the username. Applied when every security check has been passed. Must return TRUE if the username has been successfully updated.
+  ;  :username-registered-f (function)(opt)        Must return TRUE if the received username is registered.
+  ;  :username-valid-f (function)(opt)             Must return TRUE if the received username is valid.
+  ;  :user-authenticated-f (function)(opt)         Must return TRUE the user is authenticated / logged in.
+  ;  :user-exists-f (function)(opt)                Must return TRUE the user exists.
+  ;  :user-password-correct-f (function)(opt)      Must return TRUE if the received user password is correct.
+  ;  :user-password-valid-f (function)(opt)        Must return TRUE if the received user password is valid.
+  ;  :user-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (update-username {...} {...})
@@ -1343,39 +1192,27 @@
 
 (defn verify-security-code-authenticated
   ; @description
-  ; - Security protocol function for verifying a security code (for authenticated users) sent via email / SMS.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for verifying a security code (for authenticated users) sent via email / SMS.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :security-code-correct-f (function)
-  ;   Must return TRUE if the received security code is correct.
-  ;  :security-code-device-matches-f (function)(opt)
-  ;   Must return TRUE if the received security code has been required from the same device.
-  ;  :security-code-expired-f (function)(opt)
-  ;   Must return TRUE if the received security code has been expired.
-  ;  :security-code-sent-f (function)(opt)
-  ;   Must return TRUE if a security code has been sent.
-  ;  :security-code-valid-f (function)(opt)
-  ;   Must return TRUE if the received security code is valid.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-exists-f (function)(opt)
-  ;   Must return TRUE the user exists.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)            Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)          Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)           Must return TRUE if the user has permission to do the action.
+  ;  :security-code-correct-f (function)             Must return TRUE if the received security code is correct.
+  ;  :security-code-device-matches-f (function)(opt) Must return TRUE if the received security code has been required from the same device.
+  ;  :security-code-expired-f (function)(opt)        Must return TRUE if the received security code has been expired.
+  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent.
+  ;  :security-code-valid-f (function)(opt)          Must return TRUE if the received security code is valid.
+  ;  :user-authenticated-f (function)(opt)           Must return TRUE the user is authenticated / logged in.
+  ;  :user-exists-f (function)(opt)                  Must return TRUE the user exists.
+  ;  :user-rate-limit-exceeded-f (function)(opt)     Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (verify-security-code-authenticated {...} {...})
@@ -1458,52 +1295,34 @@
 
 (defn verify-security-code-unauthenticated
   ; @description
-  ; - Security protocol function for verifying a security code (for unauthenticated users) sent via email / SMS.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for verifying a security code (for unauthenticated users) sent via email / SMS.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - In case the 'provide-user-session-f' function is passed, no security check has been failed, and the received security code is correct,
   ;   it applies the 'provide-user-session-f' function on the HTTP response.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :provide-user-session-f (function)(opt)
-  ;   Must take the response as parameter, and associate a user session to it.
-  ;   Must return NIL in case of any error.
-  ;  :security-code-correct-f (function)
-  ;   Must return TRUE if the received security code is correct.
-  ;  :security-code-device-matches-f (function)(opt)
-  ;   Must return TRUE if the received security code has been required from the same device.
-  ;  :security-code-expired-f (function)(opt)
-  ;   Must return TRUE if the received security code has been expired.
-  ;  :security-code-sent-f (function)(opt)
-  ;   Must return TRUE if a security code has been sent.
-  ;  :security-code-valid-f (function)(opt)
-  ;   Must return TRUE if the received security code is valid.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-identifier-registered-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
-  ;  :user-identifier-valid-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (email address / phone number / username) is valid.
-  ;  :user-identifier-verified-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
-  ;  :user-password-correct-f (function)(opt)
-  ;   Must return TRUE if the received user password is correct.
-  ;  :user-password-valid-f (function)(opt)
-  ;   Must return TRUE if the received user password is valid.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)            Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)          Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)           Must return TRUE if the user has permission to do the action.
+  ;  :provide-user-session-f (function)(opt)         Must take the response as parameter, and associate a user session to it (return NIL in case of error).
+  ;  :security-code-correct-f (function)             Must return TRUE if the received security code is correct.
+  ;  :security-code-device-matches-f (function)(opt) Must return TRUE if the received security code has been required from the same device.
+  ;  :security-code-expired-f (function)(opt)        Must return TRUE if the received security code has been expired.
+  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent.
+  ;  :security-code-valid-f (function)(opt)          Must return TRUE if the received security code is valid.
+  ;  :user-authenticated-f (function)(opt)           Must return TRUE the user is authenticated / logged in.
+  ;  :user-identifier-registered-f (function)(opt)   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
+  ;  :user-identifier-valid-f (function)(opt)        Must return TRUE if the received user identifier (email address / phone number / username) is valid.
+  ;  :user-identifier-verified-f (function)(opt)     Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
+  ;  :user-password-correct-f (function)(opt)        Must return TRUE if the received user password is correct.
+  ;  :user-password-valid-f (function)(opt)          Must return TRUE if the received user password is valid.
+  ;  :user-rate-limit-exceeded-f (function)(opt)     Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (verify-security-code-unauthenticated {...} {...})
@@ -1609,10 +1428,12 @@
 
 (defn verify-user-password
   ; @description
-  ; - Security protocol function for user password verification (for unauthenticated users) and in case of correct user password has been
-  ;   received optionally sending an MFA security code / providing a user session.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for user password verification (for unauthenticated users) and in case of correct user password has been
+  ; received optionally sending an MFA security code / providing a user session.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - In case the 'send-security-code-f' function is passed, no security check has been failed, and the received user password is correct,
   ;   it applies the 'send-security-code-f' (it's a common scenario when the user credentials verification is followed by login code verification).
@@ -1621,34 +1442,19 @@
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :provide-user-session-f (function)(opt)
-  ;   Must take the response as parameter, and associate a user session to it.
-  ;   Must return NIL in case of any error.
-  ;  :send-security-code-f (function)(opt)
-  ;   Must return TRUE if the security code email / SMS has been successfully sent.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-identifier-registered-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (email address / phone number / username) is registered.
-  ;  :user-identifier-valid-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (email address / phone number / username) is valid.
-  ;  :user-identifier-verified-f (function)(opt)
-  ;   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
-  ;  :user-password-correct-f (function)(opt)
-  ;   Must return TRUE if the received user password are correct.
-  ;  :user-password-valid-f (function)(opt)
-  ;   Must return TRUE if the received user password is valid.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)        Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt) Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)         Must return TRUE if the user has permission to do the action.
+  ;  :provide-user-session-f (function)(opt)       Must take the response as parameter, and associate a user session to it (return NIL in case of error).
+  ;  :send-security-code-f (function)(opt)         Must return TRUE if the security code email / SMS has been successfully sent.
+  ;  :user-authenticated-f (function)(opt)         Must return TRUE the user is authenticated / logged in.
+  ;  :user-identifier-registered-f (function)(opt) Must return TRUE if the received user identifier (email address / phone number / username) is registered.
+  ;  :user-identifier-valid-f (function)(opt)      Must return TRUE if the received user identifier (email address / phone number / username) is valid.
+  ;  :user-identifier-verified-f (function)(opt)   Must return TRUE if the received user identifier (if contact: email address / phone number) is verified.
+  ;  :user-password-correct-f (function)(opt)      Must return TRUE if the received user password are correct.
+  ;  :user-password-valid-f (function)(opt)        Must return TRUE if the received user password is valid.
+  ;  :user-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (verify-user-password {...} {...})
@@ -1741,33 +1547,24 @@
 
 (defn verify-user-pin-code
   ; @description
-  ; - Security protocol function for user PIN code verification (for authenticated users).
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for user PIN code verification (for authenticated users).
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :user-authenticated-f (function)(opt)
-  ;   Must return TRUE the user is authenticated / logged in.
-  ;  :user-exists-f (function)(opt)
-  ;   Must return TRUE the user exists.
-  ;  :user-pin-code-correct-f (function)
-  ;   Must return TRUE if the received user PIN code is correct.
-  ;  :user-pin-code-valid-f (function)(opt)
-  ;   Must return TRUE if the received user PIN code is valid.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)        Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt) Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :permission-granted-f (function)(opt)         Must return TRUE if the user has permission to do the action.
+  ;  :user-authenticated-f (function)(opt)         Must return TRUE the user is authenticated / logged in.
+  ;  :user-exists-f (function)(opt)                Must return TRUE the user exists.
+  ;  :user-pin-code-correct-f (function)           Must return TRUE if the received user PIN code is correct.
+  ;  :user-pin-code-valid-f (function)(opt)        Must return TRUE if the received user PIN code is valid.
+  ;  :user-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (verify-user-pin-code {...} {...})

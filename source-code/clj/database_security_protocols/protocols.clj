@@ -8,17 +8,19 @@
 
 (defn get-data
   ; @important
-  ; This function is incomplete and may not behave as expected.
+  ; This function is not tested and may not behave as expected.
   ;
   ; @description
-  ; - Security protocol function for getting data from the database.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for getting data from the database.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - The data validating / manipulating functions are applied as a cascade where every function takes the data as it has returned from
   ;   the previous function (except the first function that takes the initial data) and every function must return the validated / manipulated
   ;   data in case of successful execution.
-  ;   Functions are applied in the following order:
+  ; - The data validating / manipulating functions are applied in the following order:
   ;   1. get-data-f
   ;   2. data-valid-f
   ;   3. prepare-data-f
@@ -33,42 +35,19 @@
   ; The 'initial-data' passed through the data validating / manipulating functions (that are applied as a cascade).
   ; Default: NIL
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :data-valid-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if it's valid.
-  ;  :get-data-f (function)(opt)
-  ;   Takes the provided 'initial-data' as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :hide-sensitive-values-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :parse-values-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :populate-data-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :postpare-data-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :prepare-data-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :unparse-values-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)        Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt) Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :data-valid-f (function)(opt)                 Must return the data if it's valid.
+  ;  :get-data-f (function)(opt)                   Must return the data if the execution was successful.
+  ;  :hide-sensitive-values-f (function)(opt)      Must return the data if the execution was successful.
+  ;  :parse-values-f (function)(opt)               Must return the data if the execution was successful.
+  ;  :permission-granted-f (function)(opt)         Must return TRUE if the user has permission to do the action.
+  ;  :populate-data-f (function)(opt)              Must return the data if the execution was successful.
+  ;  :postpare-data-f (function)(opt)              Must return the data if the execution was successful.
+  ;  :prepare-data-f (function)(opt)               Must return the data if the execution was successful.
+  ;  :unparse-values-f (function)(opt)             Must return the data if the execution was successful.
+  ;  :user-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (get-data {...} {...})
@@ -158,17 +137,19 @@
 
 (defn store-data
   ; @important
-  ; This function is incomplete and may not behave as expected.
+  ; This function is not tested and may not behave as expected.
   ;
   ; @description
-  ; - Security protocol function for storing data in the database.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for storing data in the database.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - The data validating / manipulating functions are applied as a cascade where every function takes the data as it has returned from
   ;   the previous function (except the first function that takes the initial data) and every function must return the validated / manipulated
   ;   data in case of successful execution.
-  ;   Functions are applied in the following order:
+  ; - The data validating / manipulating functions are applied in the following order:
   ;   1. data-valid-f
   ;   2. prepare-data-f
   ;   3. unpopulate-data-f
@@ -183,42 +164,19 @@
   ; The 'initial-data' passed through the data validating / manipulating functions (that are applied as a cascade).
   ; Default: NIL
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :data-valid-f (function)(opt)
-  ;   Takes the provided 'initial-data' as its only argument.
-  ;   Must return the data only if it's valid.
-  ;  :parse-values-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :permission-granted-f (function)(opt)
-  ;   Must return TRUE if the user has permission to do the action.
-  ;  :postpare-data-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :prepare-data-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :remove-blank-values-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :store-data-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return TRUE if the execution was successful.
-  ;  :unparse-values-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :unpopulate-data-f (function)(opt)
-  ;   Takes the provided 'initial-data' (as the previous function returned it) as its only argument.
-  ;   Must return the data if the execution was successful.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)        Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt) Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :data-valid-f (function)(opt)                 Must return the data only if it's valid.
+  ;  :parse-values-f (function)(opt)               Must return the data if the execution was successful.
+  ;  :permission-granted-f (function)(opt)         Must return TRUE if the user has permission to do the action.
+  ;  :postpare-data-f (function)(opt)              Must return the data if the execution was successful.
+  ;  :prepare-data-f (function)(opt)               Must return the data if the execution was successful.
+  ;  :remove-blank-values-f (function)(opt)        Must return the data if the execution was successful.
+  ;  :store-data-f (function)(opt)                 Must return TRUE if the execution was successful.
+  ;  :unparse-values-f (function)(opt)             Must return the data if the execution was successful.
+  ;  :unpopulate-data-f (function)(opt)            Must return the data if the execution was successful.
+  ;  :user-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (store-data {...} {...})
@@ -309,28 +267,23 @@
 
 (defn remove-data
   ; @important
-  ; This function is incomplete and may not behave as expected.
+  ; This function is not tested and may not behave as expected.
   ;
   ; @description
-  ; - Security protocol function for removing data from the database.
-  ; - For performing additional side effects use the 'additional-action-f' function.
-  ; - For implementing additional security levels use the 'additional-security-f' function.
+  ; Security protocol function for removing data from the database.
+  ;
+  ; @note
+  ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
+  ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
   ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
-  ; {:additional-action-f (function)(opt)
-  ;   Custom side-effect function that is applied if no security check has been failed.
-  ;   Must return TRUE in case of successful execution.
-  ;  :additional-security-f (function)(opt)
-  ;   Custom security function that is applied after the built-in security checks.
-  ;   Must return TRUE in case of no security concern detected.
-  ;  :client-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
-  ;  :remove-data-f (function)
-  ;   Must return TRUE if the execution was successful.
-  ;  :user-rate-limit-exceeded-f (function)(opt)
-  ;   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
+  ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
+  ;  :additional-security-f (function)(opt)        Must return TRUE in case of no security concern detected.
+  ;  :client-rate-limit-exceeded-f (function)(opt) Must return TRUE if the client device / IP address is involved in too many attempts in a specific timeframe.
+  ;  :remove-data-f (function)                     Must return TRUE if the execution was successful.
+  ;  :user-rate-limit-exceeded-f (function)(opt)   Must return TRUE if the user is involved in too many attempts in a specific timeframe.}
   ;
   ; @usage
   ; (remove-data {...} {...})
