@@ -50,17 +50,17 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-user-identifier-received      (Invalid user identifier (email address / phone number / username) has been received),
-  ;   :forbidden-request/permission-denied                     (The user has no permission to do the action),
-  ;   :invalid-request/invalid-ip-address                      (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent                      (No valid user agent has been found in the request),
-  ;   :performed-request/registered-user-identifier-received   (Registered user identifier (email address / phone number / username) has been received),
-  ;   :performed-request/unregistered-user-identifier-received (Unregistered user identifier (email address / phone number / username) has been received),
-  ;   :performed-request/unverified-user-identifier-received   (Registered but unverified user identifier (if contact: email address / phone number) has been received),
-  ;   :performed-request/verified-user-identifier-received     (Registered and verified user identifier (email address / phone number / username) has been received),
-  ;   :too-many-requests/client-rate-limit-exceeded            (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded              (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unknown-error/additional-action-stage-failed            (The additional action function returned a false value),
+  ;   :forbidden-request/invalid-user-identifier-received      (Invalid user identifier (email address / phone number / username) has been received)
+  ;   :forbidden-request/permission-denied                     (The user has no permission to do the action)
+  ;   :invalid-request/invalid-ip-address                      (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent                      (No valid user agent has been found in the request)
+  ;   :performed-request/registered-user-identifier-received   (Registered user identifier (email address / phone number / username) has been received)
+  ;   :performed-request/unregistered-user-identifier-received (Unregistered user identifier (email address / phone number / username) has been received)
+  ;   :performed-request/unverified-user-identifier-received   (Registered but unverified user identifier (if contact: email address / phone number) has been received)
+  ;   :performed-request/verified-user-identifier-received     (Registered and verified user identifier (email address / phone number / username) has been received)
+  ;   :too-many-requests/client-rate-limit-exceeded            (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded              (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unknown-error/additional-action-stage-failed            (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed          (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 403, 429, 520}
@@ -154,23 +154,23 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-user-identifier-received    (Invalid user identifier (email address / phone number / username) has been received),
-  ;   :forbidden-request/invalid-user-data-received          (Invalid user data has been received),
-  ;   :forbidden-request/invalid-user-password-received      (Invalid user password has been received),
-  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action),
-  ;   :forbidden-request/registered-user-identifier-received (Registered user identifier (email address / phone number / username) has been received),
-  ;   :forbidden-request/user-authenticated                  (The user is authenticated / logged in),
-  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request),
-  ;   :performed-request/user-account-created                (The server has been successfully created the user account),
-  ;   :performed-request/user-session-provided               (The server has been successfully provided a user session to the HTTP response),
-  ;   :server-error/unable-to-create-user-account            (The server cannot create the user account),
-  ;   :server-error/unable-to-provide-user-session           (The server cannot provide the user session to the HTTP response),
-  ;   :server-error/unable-to-send-security-code             (The server cannot send the security code email / SMS to the user),
-  ;   :server-error/unable-to-send-welcome-message           (The server cannot send the welcome email / SMS to the user),
-  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value),
+  ;   :forbidden-request/invalid-user-identifier-received    (Invalid user identifier (email address / phone number / username) has been received)
+  ;   :forbidden-request/invalid-user-data-received          (Invalid user data has been received)
+  ;   :forbidden-request/invalid-user-password-received      (Invalid user password has been received)
+  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action)
+  ;   :forbidden-request/registered-user-identifier-received (Registered user identifier (email address / phone number / username) has been received)
+  ;   :forbidden-request/user-authenticated                  (The user is authenticated / logged in)
+  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request)
+  ;   :performed-request/user-account-created                (The server has been successfully created the user account)
+  ;   :performed-request/user-session-provided               (The server has been successfully provided a user session to the HTTP response)
+  ;   :server-error/unable-to-create-user-account            (The server cannot create the user account)
+  ;   :server-error/unable-to-provide-user-session           (The server cannot provide the user session to the HTTP response)
+  ;   :server-error/unable-to-send-security-code             (The server cannot send the security code email / SMS to the user)
+  ;   :server-error/unable-to-send-welcome-message           (The server cannot send the welcome email / SMS to the user)
+  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed        (The additional security function returned a false value)
   ;  :status (integer)
   ;   201, 400, 403, 429, 500, 520}
@@ -259,14 +259,14 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/permission-denied            (The user has no permission to do the action),
-  ;   :forbidden-request/user-not-exists              (The user ID does not exist),
-  ;   :forbidden-request/user-unauthenticated         (The user is unauthenticated / not logged in),
-  ;   :invalid-request/invalid-ip-address             (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent             (No valid user agent has been found in the request),
-  ;   :performed-request/user-session-dropped         (The user session has been removed successfully),
-  ;   :server-error/unable-to-drop-user-session       (The server cannot remove the user session from the HTTP response),
-  ;   :unknown-error/additional-action-stage-failed   (The additional action function returned a false value),
+  ;   :forbidden-request/permission-denied            (The user has no permission to do the action)
+  ;   :forbidden-request/user-not-exists              (The user ID does not exist)
+  ;   :forbidden-request/user-unauthenticated         (The user is unauthenticated / not logged in)
+  ;   :invalid-request/invalid-ip-address             (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent             (No valid user agent has been found in the request)
+  ;   :performed-request/user-session-dropped         (The user session has been removed successfully)
+  ;   :server-error/unable-to-drop-user-session       (The server cannot remove the user session from the HTTP response)
+  ;   :unknown-error/additional-action-stage-failed   (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 429, 500, 520}
@@ -363,26 +363,26 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :invalid-request/invalid-ip-address                      (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent                      (No valid user agent has been found in the request),
-  ;   :forbidden-request/invalid-fresh-password-received       (Invalid fresh password has been received),
-  ;   :forbidden-request/invalid-security-code-received        (Invalid security code has been received),
-  ;   :forbidden-request/invalid-user-identifier-received      (Invalid user identifier (email address / phone number / username) has been received),
-  ;   :forbidden-request/no-security-code-sent-in-timeframe    (No security code has been sent in a specific timeframe),
-  ;   :forbidden-request/permission-denied                     (The user has no permission to do the action),
-  ;   :forbidden-request/security-code-device-not-matches      (The received security code has been required from another device),
-  ;   :forbidden-request/unregistered-user-identifier-received (Unregistered user identifier (email address / phone number / username) has been received),
-  ;   :forbidden-request/unverified-user-identifier-received   (Unverified user identifier (if contact: email address / phone number) has been received),
-  ;   :forbidden-request/user-authenticated                    (The user is authenticated / logged in),
-  ;   :performed-request/user-password-recovered               (The server has been successfully recovered the user's password),
-  ;   :performed-request/user-session-provided                 (The server has been successfully provided a user session to the HTTP response),
-  ;   :server-error/unable-to-provide-user-session             (The server cannot provide the user session to the HTTP response),
-  ;   :server-error/unable-to-recover-user-password            (The server cannot recover the user's password),
-  ;   :too-many-requests/client-rate-limit-exceeded            (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded              (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unauthorized-request/expired-security-code-received     (Expired security code has been received),
-  ;   :unauthorized-request/incorrect-security-code-received   (Incorrect security code has been received),
-  ;   :unknown-error/additional-action-stage-failed            (The additional action function returned a false value),
+  ;   :invalid-request/invalid-ip-address                      (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent                      (No valid user agent has been found in the request)
+  ;   :forbidden-request/invalid-fresh-password-received       (Invalid fresh password has been received)
+  ;   :forbidden-request/invalid-security-code-received        (Invalid security code has been received)
+  ;   :forbidden-request/invalid-user-identifier-received      (Invalid user identifier (email address / phone number / username) has been received)
+  ;   :forbidden-request/no-security-code-sent-in-timeframe    (No security code has been sent in a specific timeframe)
+  ;   :forbidden-request/permission-denied                     (The user has no permission to do the action)
+  ;   :forbidden-request/security-code-device-not-matches      (The received security code has been required from another device)
+  ;   :forbidden-request/unregistered-user-identifier-received (Unregistered user identifier (email address / phone number / username) has been received)
+  ;   :forbidden-request/unverified-user-identifier-received   (Unverified user identifier (if contact: email address / phone number) has been received)
+  ;   :forbidden-request/user-authenticated                    (The user is authenticated / logged in)
+  ;   :performed-request/user-password-recovered               (The server has been successfully recovered the user's password)
+  ;   :performed-request/user-session-provided                 (The server has been successfully provided a user session to the HTTP response)
+  ;   :server-error/unable-to-provide-user-session             (The server cannot provide the user session to the HTTP response)
+  ;   :server-error/unable-to-recover-user-password            (The server cannot recover the user's password)
+  ;   :too-many-requests/client-rate-limit-exceeded            (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded              (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unauthorized-request/expired-security-code-received     (Expired security code has been received)
+  ;   :unauthorized-request/incorrect-security-code-received   (Incorrect security code has been received)
+  ;   :unknown-error/additional-action-stage-failed            (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed          (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 500, 520}
@@ -496,26 +496,26 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-security-code-received      (Invalid security code has been received),
-  ;   :forbidden-request/invalid-user-password-received      (Invalid user password has been received),
-  ;   :forbidden-request/no-security-code-sent-in-timeframe  (No security code has been sent in a specific timeframe),
-  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action),
-  ;   :forbidden-request/security-code-device-not-matches    (The received security code has been required from another device),
-  ;   :forbidden-request/user-not-exists                     (The user ID does not exist),
-  ;   :forbidden-request/user-unauthenticated                (The user is unauthenticated / not logged in),
-  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request),
-  ;   :performed-request/user-account-removed                (The server has been successfully removed the user account),
-  ;   :performed-request/user-session-dropped                (The server has been successfully removed the user account and the user session from the HTTP response),
-  ;   :server-error/unable-to-drop-user-session              (The server cannot remove the user session from the HTTP response),
-  ;   :server-error/unable-to-remove-user-account            (The server cannot remove the user account),
-  ;   :server-error/unable-to-send-goodbye-message           (The server cannot send the goodbye email / SMS to the user),
-  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unauthorized-request/expired-security-code-received   (Expired security code has been received),
-  ;   :unauthorized-request/incorrect-security-code-received (Incorrect security code has been received),
-  ;   :unauthorized-request/incorrect-user-password-received (Incorrect user password has been received),
-  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value),
+  ;   :forbidden-request/invalid-security-code-received      (Invalid security code has been received)
+  ;   :forbidden-request/invalid-user-password-received      (Invalid user password has been received)
+  ;   :forbidden-request/no-security-code-sent-in-timeframe  (No security code has been sent in a specific timeframe)
+  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action)
+  ;   :forbidden-request/security-code-device-not-matches    (The received security code has been required from another device)
+  ;   :forbidden-request/user-not-exists                     (The user ID does not exist)
+  ;   :forbidden-request/user-unauthenticated                (The user is unauthenticated / not logged in)
+  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request)
+  ;   :performed-request/user-account-removed                (The server has been successfully removed the user account)
+  ;   :performed-request/user-session-dropped                (The server has been successfully removed the user account and the user session from the HTTP response)
+  ;   :server-error/unable-to-drop-user-session              (The server cannot remove the user session from the HTTP response)
+  ;   :server-error/unable-to-remove-user-account            (The server cannot remove the user account)
+  ;   :server-error/unable-to-send-goodbye-message           (The server cannot send the goodbye email / SMS to the user)
+  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unauthorized-request/expired-security-code-received   (Expired security code has been received)
+  ;   :unauthorized-request/incorrect-security-code-received (Incorrect security code has been received)
+  ;   :unauthorized-request/incorrect-user-password-received (Incorrect user password has been received)
+  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed        (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 500, 520}
@@ -609,16 +609,16 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/permission-denied            (The user has no permission to do the action),
-  ;   :forbidden-request/user-not-exists              (The user ID does not exist),
-  ;   :forbidden-request/user-unauthenticated         (The user is unauthenticated / not logged in),
-  ;   :invalid-request/invalid-ip-address             (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent             (No valid user agent has been found in the request),
-  ;   :performed-request/security-code-sent           (The server has been successfully sent the security code email / SMS to the user),
-  ;   :server-error/unable-to-send-security-code      (The server cannot send the security code email / SMS to the user),
-  ;   :too-many-requests/client-rate-limit-exceeded   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded     (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unknown-error/additional-action-stage-failed   (The additional action function returned a false value),
+  ;   :forbidden-request/permission-denied            (The user has no permission to do the action)
+  ;   :forbidden-request/user-not-exists              (The user ID does not exist)
+  ;   :forbidden-request/user-unauthenticated         (The user is unauthenticated / not logged in)
+  ;   :invalid-request/invalid-ip-address             (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent             (No valid user agent has been found in the request)
+  ;   :performed-request/security-code-sent           (The server has been successfully sent the security code email / SMS to the user)
+  ;   :server-error/unable-to-send-security-code      (The server cannot send the security code email / SMS to the user)
+  ;   :too-many-requests/client-rate-limit-exceeded   (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded     (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unknown-error/additional-action-stage-failed   (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 403, 429, 500, 520}
@@ -695,18 +695,18 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-user-identifier-received      (Invalid user identifier (email address / phone number / username) has been received),
-  ;   :forbidden-request/permission-denied                     (The user has no permission to do the action),
-  ;   :forbidden-request/unregistered-user-identifier-received (Unregistered user identifier (email address / phone number / username) has been received),
-  ;   :forbidden-request/unverified-user-identifier-received   (Unverified user identifier (if contact: email address / phone number) has been received),
-  ;   :forbidden-request/user-authenticated                    (The user is authenticated / logged in),
-  ;   :invalid-request/invalid-ip-address                      (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent                      (No valid user agent has been found in the request),
-  ;   :performed-request/security-code-sent                    (The server has been successfully sent the security code email / SMS to the user),
-  ;   :server-error/unable-to-send-security-code               (The server cannot send the security code email / SMS to the user),
-  ;   :too-many-requests/client-rate-limit-exceeded            (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded              (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unknown-error/additional-action-stage-failed            (The additional action function returned a false value),
+  ;   :forbidden-request/invalid-user-identifier-received      (Invalid user identifier (email address / phone number / username) has been received)
+  ;   :forbidden-request/permission-denied                     (The user has no permission to do the action)
+  ;   :forbidden-request/unregistered-user-identifier-received (Unregistered user identifier (email address / phone number / username) has been received)
+  ;   :forbidden-request/unverified-user-identifier-received   (Unverified user identifier (if contact: email address / phone number) has been received)
+  ;   :forbidden-request/user-authenticated                    (The user is authenticated / logged in)
+  ;   :invalid-request/invalid-ip-address                      (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent                      (No valid user agent has been found in the request)
+  ;   :performed-request/security-code-sent                    (The server has been successfully sent the security code email / SMS to the user)
+  ;   :server-error/unable-to-send-security-code               (The server cannot send the security code email / SMS to the user)
+  ;   :too-many-requests/client-rate-limit-exceeded            (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded              (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unknown-error/additional-action-stage-failed            (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed          (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 403, 429, 500, 520}
@@ -805,25 +805,25 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-user-contact-received       (Invalid user contact (email address / phone number) has been received),
-  ;   :forbidden-request/invalid-security-code-received      (Invalid security code has been received),
-  ;   :forbidden-request/invalid-user-password-received      (Invalid user password has been received),
-  ;   :forbidden-request/no-security-code-sent-in-timeframe  (No security code has been sent in a specific timeframe),
-  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action),
-  ;   :forbidden-request/registered-user-contact-received    (Registered user contact (email address / phone number) has been received),
-  ;   :forbidden-request/security-code-device-not-matches    (The received security code has been required from another device),
-  ;   :forbidden-request/user-not-exists                     (The user ID does not exist),
-  ;   :forbidden-request/user-unauthenticated                (The user is unauthenticated / not logged in),
-  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request),
-  ;   :performed-request/user-contact-updated                (The server has been successfully updated the user's email address / phone number),
-  ;   :server-error/unable-to-update-user-contact            (The server cannot update the user's email address / phone number),
-  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unauthorized-request/expired-security-code-received   (Expired security code has been received),
-  ;   :unauthorized-request/incorrect-security-code-received (Incorrect security code has been received),
-  ;   :unauthorized-request/incorrect-user-password-received (Incorrect user password has been received),
-  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value),
+  ;   :forbidden-request/invalid-user-contact-received       (Invalid user contact (email address / phone number) has been received)
+  ;   :forbidden-request/invalid-security-code-received      (Invalid security code has been received)
+  ;   :forbidden-request/invalid-user-password-received      (Invalid user password has been received)
+  ;   :forbidden-request/no-security-code-sent-in-timeframe  (No security code has been sent in a specific timeframe)
+  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action)
+  ;   :forbidden-request/registered-user-contact-received    (Registered user contact (email address / phone number) has been received)
+  ;   :forbidden-request/security-code-device-not-matches    (The received security code has been required from another device)
+  ;   :forbidden-request/user-not-exists                     (The user ID does not exist)
+  ;   :forbidden-request/user-unauthenticated                (The user is unauthenticated / not logged in)
+  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request)
+  ;   :performed-request/user-contact-updated                (The server has been successfully updated the user's email address / phone number)
+  ;   :server-error/unable-to-update-user-contact            (The server cannot update the user's email address / phone number)
+  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unauthorized-request/expired-security-code-received   (Expired security code has been received)
+  ;   :unauthorized-request/incorrect-security-code-received (Incorrect security code has been received)
+  ;   :unauthorized-request/incorrect-user-password-received (Incorrect user password has been received)
+  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed        (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 500, 520}
@@ -918,17 +918,17 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-user-data-received   (Invalid user data has been received),
-  ;   :forbidden-request/permission-denied            (The user has no permission to do the action),
-  ;   :forbidden-request/user-not-exists              (The user ID does not exist),
-  ;   :forbidden-request/user-unauthenticated         (The user is unauthenticated / not logged in),
-  ;   :invalid-request/invalid-ip-address             (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent             (No valid user agent has been found in the request),
-  ;   :performed-request/user-data-updated            (The server has been successfully updated the user data),
-  ;   :server-error/unable-to-update-user-data        (The server cannot update the user data),
-  ;   :too-many-requests/client-rate-limit-exceeded   (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded     (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unknown-error/additional-action-stage-failed   (The additional action function returned a false value),
+  ;   :forbidden-request/invalid-user-data-received   (Invalid user data has been received)
+  ;   :forbidden-request/permission-denied            (The user has no permission to do the action)
+  ;   :forbidden-request/user-not-exists              (The user ID does not exist)
+  ;   :forbidden-request/user-unauthenticated         (The user is unauthenticated / not logged in)
+  ;   :invalid-request/invalid-ip-address             (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent             (No valid user agent has been found in the request)
+  ;   :performed-request/user-data-updated            (The server has been successfully updated the user data)
+  ;   :server-error/unable-to-update-user-data        (The server cannot update the user data)
+  ;   :too-many-requests/client-rate-limit-exceeded   (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded     (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unknown-error/additional-action-stage-failed   (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 403, 429, 500, 520}
@@ -1022,24 +1022,24 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-fresh-password-received     (Invalid fresh password has been received),
-  ;   :forbidden-request/invalid-security-code-received      (Invalid security code has been received),
-  ;   :forbidden-request/invalid-user-password-received      (Invalid user password has been received),
-  ;   :forbidden-request/no-security-code-sent-in-timeframe  (No security code has been sent in a specific timeframe),
-  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action),
-  ;   :forbidden-request/security-code-device-not-matches    (The received security code has been required from another device),
-  ;   :forbidden-request/user-not-exists                     (The user ID does not exist),
-  ;   :forbidden-request/user-unauthenticated                (The user is unauthenticated / not logged in),
-  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request),
-  ;   :performed-request/user-password-updated               (The server has been successfully updated the user's password),
-  ;   :server-error/unable-to-update-user-password           (The server cannot update the user's password),
-  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unauthorized-request/expired-security-code-received   (Expired security code has been received),
-  ;   :unauthorized-request/incorrect-security-code-received (Incorrect security code has been received),
-  ;   :unauthorized-request/incorrect-user-password-received (Incorrect user password has been received),
-  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value),
+  ;   :forbidden-request/invalid-fresh-password-received     (Invalid fresh password has been received)
+  ;   :forbidden-request/invalid-security-code-received      (Invalid security code has been received)
+  ;   :forbidden-request/invalid-user-password-received      (Invalid user password has been received)
+  ;   :forbidden-request/no-security-code-sent-in-timeframe  (No security code has been sent in a specific timeframe)
+  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action)
+  ;   :forbidden-request/security-code-device-not-matches    (The received security code has been required from another device)
+  ;   :forbidden-request/user-not-exists                     (The user ID does not exist)
+  ;   :forbidden-request/user-unauthenticated                (The user is unauthenticated / not logged in)
+  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request)
+  ;   :performed-request/user-password-updated               (The server has been successfully updated the user's password)
+  ;   :server-error/unable-to-update-user-password           (The server cannot update the user's password)
+  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unauthorized-request/expired-security-code-received   (Expired security code has been received)
+  ;   :unauthorized-request/incorrect-security-code-received (Incorrect security code has been received)
+  ;   :unauthorized-request/incorrect-user-password-received (Incorrect user password has been received)
+  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed        (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 500, 520}
@@ -1139,20 +1139,20 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-username-received           (Invalid username has been received),
-  ;   :forbidden-request/invalid-user-password-received      (Invalid user password has been received),
-  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action),
-  ;   :forbidden-request/registered-username-received        (Registered username has been received),
-  ;   :forbidden-request/user-not-exists                     (The user ID does not exist),
-  ;   :forbidden-request/user-unauthenticated                (The user is unauthenticated / not logged in),
-  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request),
-  ;   :performed-request/username-updated                    (The server has been successfully updated the username),
-  ;   :server-error/unable-to-update-username                (The server cannot update the username),
-  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unauthorized-request/incorrect-user-password-received (Incorrect user password has been received),
-  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value),
+  ;   :forbidden-request/invalid-username-received           (Invalid username has been received)
+  ;   :forbidden-request/invalid-user-password-received      (Invalid user password has been received)
+  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action)
+  ;   :forbidden-request/registered-username-received        (Registered username has been received)
+  ;   :forbidden-request/user-not-exists                     (The user ID does not exist)
+  ;   :forbidden-request/user-unauthenticated                (The user is unauthenticated / not logged in)
+  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request)
+  ;   :performed-request/username-updated                    (The server has been successfully updated the username)
+  ;   :server-error/unable-to-update-username                (The server cannot update the username)
+  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unauthorized-request/incorrect-user-password-received (Incorrect user password has been received)
+  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed        (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 500, 520}
@@ -1242,20 +1242,20 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-security-code-received      (Invalid security code has been received),
-  ;   :forbidden-request/no-security-code-sent-in-timeframe  (No security code has been sent in a specific timeframe),
-  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action),
-  ;   :forbidden-request/security-code-device-not-matches    (The received security code has been required from another device),
-  ;   :forbidden-request/user-not-exists                     (The user ID does not exist),
-  ;   :forbidden-request/user-unauthenticated                (The user is unauthenticated / not logged in),
-  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request),
-  ;   :performed-request/correct-security-code-received      (Correct security code has been received),
-  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unauthorized-request/incorrect-security-code-received (Incorrect security code has been received),
-  ;   :unauthorized-request/expired-security-code-received   (Expired security code has been received),
-  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value),
+  ;   :forbidden-request/invalid-security-code-received      (Invalid security code has been received)
+  ;   :forbidden-request/no-security-code-sent-in-timeframe  (No security code has been sent in a specific timeframe)
+  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action)
+  ;   :forbidden-request/security-code-device-not-matches    (The received security code has been required from another device)
+  ;   :forbidden-request/user-not-exists                     (The user ID does not exist)
+  ;   :forbidden-request/user-unauthenticated                (The user is unauthenticated / not logged in)
+  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request)
+  ;   :performed-request/correct-security-code-received      (Correct security code has been received)
+  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unauthorized-request/incorrect-security-code-received (Incorrect security code has been received)
+  ;   :unauthorized-request/expired-security-code-received   (Expired security code has been received)
+  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed        (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 520}
@@ -1358,25 +1358,25 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-security-code-received        (Invalid security code has been received),
-  ;   :forbidden-request/invalid-user-identifier-received      (Invalid user identifier (email address / phone number / username) has been received),
-  ;   :forbidden-request/invalid-user-password-received        (Invalid user password has been received),
-  ;   :forbidden-request/no-security-code-sent-in-timeframe    (No security code has been sent in a specific timeframe),
-  ;   :forbidden-request/permission-denied                     (The user has no permission to do the action),
-  ;   :forbidden-request/security-code-device-not-matches      (The received security code has been required from another device),
-  ;   :forbidden-request/unregistered-user-identifier-received (Unregistered user identifier (email address / phone number / username) has been received),
-  ;   :forbidden-request/user-authenticated                    (The user is authenticated / logged in),
-  ;   :invalid-request/invalid-ip-address                      (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent                      (No valid user agent has been found in the request),
-  ;   :performed-request/correct-security-code-received        (Correct security code has been received),
-  ;   :performed-request/user-session-provided                 (The server has been successfully provided a user session to the HTTP response),
-  ;   :server-error/unable-to-provide-user-session             (The server cannot provide the user session to the HTTP response),
-  ;   :too-many-requests/client-rate-limit-exceeded            (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded              (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unauthorized-request/expired-security-code-received     (Expired security code has been received),
-  ;   :unauthorized-request/incorrect-security-code-received   (Incorrect security code has been received),
-  ;   :unauthorized-request/incorrect-user-password-received   (Incorrect user password has been received),
-  ;   :unknown-error/additional-action-stage-failed            (The additional action function returned a false value),
+  ;   :forbidden-request/invalid-security-code-received        (Invalid security code has been received)
+  ;   :forbidden-request/invalid-user-identifier-received      (Invalid user identifier (email address / phone number / username) has been received)
+  ;   :forbidden-request/invalid-user-password-received        (Invalid user password has been received)
+  ;   :forbidden-request/no-security-code-sent-in-timeframe    (No security code has been sent in a specific timeframe)
+  ;   :forbidden-request/permission-denied                     (The user has no permission to do the action)
+  ;   :forbidden-request/security-code-device-not-matches      (The received security code has been required from another device)
+  ;   :forbidden-request/unregistered-user-identifier-received (Unregistered user identifier (email address / phone number / username) has been received)
+  ;   :forbidden-request/user-authenticated                    (The user is authenticated / logged in)
+  ;   :invalid-request/invalid-ip-address                      (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent                      (No valid user agent has been found in the request)
+  ;   :performed-request/correct-security-code-received        (Correct security code has been received)
+  ;   :performed-request/user-session-provided                 (The server has been successfully provided a user session to the HTTP response)
+  ;   :server-error/unable-to-provide-user-session             (The server cannot provide the user session to the HTTP response)
+  ;   :too-many-requests/client-rate-limit-exceeded            (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded              (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unauthorized-request/expired-security-code-received     (Expired security code has been received)
+  ;   :unauthorized-request/incorrect-security-code-received   (Incorrect security code has been received)
+  ;   :unauthorized-request/incorrect-user-password-received   (Incorrect user password has been received)
+  ;   :unknown-error/additional-action-stage-failed            (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed          (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 500, 520}
@@ -1485,23 +1485,23 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-user-identifier-received      (Invalid user identifier (email address / phone number / username) has been received),
-  ;   :forbidden-request/invalid-user-password-received        (Invalid user password has been received),
-  ;   :forbidden-request/permission-denied                     (The user has no permission to do the action),
-  ;   :forbidden-request/unregistered-user-identifier-received (Unregistered user identifier (email address / phone number / username) has been received),
-  ;   :forbidden-request/unverified-user-identifier-received   (Unverified user identifier (if contact: email address / phone number) has been received),
-  ;   :forbidden-request/user-authenticated                    (The user is authenticated / logged in),
-  ;   :invalid-request/invalid-ip-address                      (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent                      (No valid user agent has been found in the request),
-  ;   :performed-request/correct-user-password-received        (Correct user password has been received),
-  ;   :performed-request/security-code-sent                    (The server has been successfully sent the security code email / SMS to the user),
-  ;   :performed-request/user-session-provided                 (The server has been successfully provided a user session to the HTTP response),
-  ;   :server-error/unable-to-provide-user-session             (The server cannot provide the user session to the HTTP response),
-  ;   :server-error/unable-to-send-security-code               (The server cannot send the security code email / SMS to the user),
-  ;   :too-many-requests/client-rate-limit-exceeded            (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded              (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unauthorized-request/incorrect-user-password-received   (Incorrect user password has been received),
-  ;   :unknown-error/additional-action-stage-failed            (The additional action function returned a false value),
+  ;   :forbidden-request/invalid-user-identifier-received      (Invalid user identifier (email address / phone number / username) has been received)
+  ;   :forbidden-request/invalid-user-password-received        (Invalid user password has been received)
+  ;   :forbidden-request/permission-denied                     (The user has no permission to do the action)
+  ;   :forbidden-request/unregistered-user-identifier-received (Unregistered user identifier (email address / phone number / username) has been received)
+  ;   :forbidden-request/unverified-user-identifier-received   (Unverified user identifier (if contact: email address / phone number) has been received)
+  ;   :forbidden-request/user-authenticated                    (The user is authenticated / logged in)
+  ;   :invalid-request/invalid-ip-address                      (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent                      (No valid user agent has been found in the request)
+  ;   :performed-request/correct-user-password-received        (Correct user password has been received)
+  ;   :performed-request/security-code-sent                    (The server has been successfully sent the security code email / SMS to the user)
+  ;   :performed-request/user-session-provided                 (The server has been successfully provided a user session to the HTTP response)
+  ;   :server-error/unable-to-provide-user-session             (The server cannot provide the user session to the HTTP response)
+  ;   :server-error/unable-to-send-security-code               (The server cannot send the security code email / SMS to the user)
+  ;   :too-many-requests/client-rate-limit-exceeded            (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded              (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unauthorized-request/incorrect-user-password-received   (Incorrect user password has been received)
+  ;   :unknown-error/additional-action-stage-failed            (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed          (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 500, 520}
@@ -1591,17 +1591,17 @@
   ;
   ; @return (map)
   ; {:body (namespaced keyword)
-  ;   :forbidden-request/invalid-user-pin-code-received      (Invalid user PIN code has been received),
-  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action),
-  ;   :forbidden-request/user-not-exists                     (The user ID does not exist),
-  ;   :forbidden-request/user-unauthenticated                (The user is unauthenticated / not logged in),
-  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request),
-  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request),
-  ;   :performed-request/correct-user-pin-code-received      (Correct user PIN code has been received),
-  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe),
-  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe),
-  ;   :unauthorized-request/incorrect-user-pin-code-received (Incorrect user PIN code has been received),
-  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value),
+  ;   :forbidden-request/invalid-user-pin-code-received      (Invalid user PIN code has been received)
+  ;   :forbidden-request/permission-denied                   (The user has no permission to do the action)
+  ;   :forbidden-request/user-not-exists                     (The user ID does not exist)
+  ;   :forbidden-request/user-unauthenticated                (The user is unauthenticated / not logged in)
+  ;   :invalid-request/invalid-ip-address                    (No valid IP address has been found in the request)
+  ;   :invalid-request/invalid-user-agent                    (No valid user agent has been found in the request)
+  ;   :performed-request/correct-user-pin-code-received      (Correct user PIN code has been received)
+  ;   :too-many-requests/client-rate-limit-exceeded          (Too many actions have been attempted by the client device / IP address in a specific timeframe)
+  ;   :too-many-requests/user-rate-limit-exceeded            (Too many actions have been attempted by the user in a specific timeframe)
+  ;   :unauthorized-request/incorrect-user-pin-code-received (Incorrect user PIN code has been received)
+  ;   :unknown-error/additional-action-stage-failed          (The additional action function returned a false value)
   ;   :unknown-error/additional-security-stage-failed        (The additional security function returned a false value)
   ;  :status (integer)
   ;   200, 400, 401, 403, 429, 520}
