@@ -11,12 +11,12 @@
   ; This function is not tested and may not behave as expected.
   ;
   ; @description
-  ; Security protocol function for getting data from the database.
+  ; - Security protocol function for getting data from database.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - The data validating / manipulating functions are applied as a cascade where every function takes the data as it has returned from
   ;   the previous function (except the first function that takes the initial data) and every function must return the validated / manipulated
   ;   data in case of successful execution.
@@ -58,7 +58,7 @@
   ; @usage
   ; (get-data {...} {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body {:my-data "..."} :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -76,7 +76,7 @@
   ; {:body {:my-data "..."} :status 200}
   ;
   ; @return (map)
-  ; {:body (namespaced keyword)
+  ; {:body (namespaced keyword or *)
   ;   :forbidden-request/permission-denied            (The user has no permission to do the action)
   ;   :invalid-request/invalid-ip-address             (No valid IP address has been found in the request)
   ;   :invalid-request/invalid-user-agent             (No valid user agent has been found in the request)
@@ -140,12 +140,12 @@
   ; This function is not tested and may not behave as expected.
   ;
   ; @description
-  ; Security protocol function for storing data in the database.
+  ; - Security protocol function for storing data in the database.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - The data validating / manipulating functions are applied as a cascade where every function takes the data as it has returned from
   ;   the previous function (except the first function that takes the initial data) and every function must return the validated / manipulated
   ;   data in case of successful execution.
@@ -187,7 +187,7 @@
   ; @usage
   ; (store-data {...} {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/data-stored :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -270,12 +270,12 @@
   ; This function is not tested and may not behave as expected.
   ;
   ; @description
-  ; Security protocol function for removing data from the database.
+  ; - Security protocol function for removing data from database.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -291,7 +291,7 @@
   ; @usage
   ; (remove-data {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/data-removed :status 200}
   ;
   ; @usage
   ; (defn my-route

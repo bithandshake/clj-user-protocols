@@ -8,13 +8,13 @@
 
 (defn check-user-identifier
   ; @description
-  ; Security protocol function for checking a user identifier (email address / phone number / username) (for authenticated / unauthenticated users)
-  ; whether it is registered and/or verified.
+  ; - Security protocol function for checking a user identifier (email address / phone number / username) (for authenticated / unauthenticated users)
+  ;   whether it is registered and/or verified.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -33,7 +33,7 @@
   ; @usage
   ; (check-user-identifier {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/verified-user-identifier-received :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -94,13 +94,12 @@
 
 (defn create-user-account
   ; @description
-  ; Security protocol function for creating a user account that is identified by a user identifier (email address / phone number / username)
-  ; and protected by a password.
+  ; - Security protocol function for creating a user account that is identified by a user identifier (email address / phone number / username) and protected by a password.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - In case the 'send-security-code-f' function is passed, no security check has been failed, and the user account is successfully created,
   ;   it applies the 'send-security-code-f' (it's a common scenario when user account creating followed by login code verification).
   ; - In case the 'provide-user-session-f' function is passed, the 'send-security-code-f' function is NOT passed, no security check has
@@ -129,7 +128,7 @@
   ; @usage
   ; (create-user-account {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/user-account-created :status 201}
   ;
   ; @usage
   ; (defn my-route
@@ -218,12 +217,12 @@
 
 (defn drop-user-session
   ; @description
-  ; Security protocol function for dropping a user session.
+  ; - Security protocol function for dropping a user session.
+  ; - Performs various security checks before returns a HTTP response indicating the result of the checks.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response indicating the result of the checks.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -299,12 +298,12 @@
 
 (defn recover-user-password
   ; @description
-  ; Security protocol function for user password recovering (for authenticated users) with optional security code verification.
+  ; - Security protocol function for user password recovering (for authenticated users) with optional security code verification.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - In case the 'provide-user-session-f' function is passed, no security check has been failed, and the received security code is correct,
   ;   it applies the 'provide-user-session-f' function on the HTTP response.
   ;
@@ -334,7 +333,7 @@
   ; @usage
   ; (recover-user-password {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/user-password-recovered :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -435,12 +434,12 @@
 
 (defn remove-user-account
   ; @description
-  ; Security protocol function for user account removal (for authenticated users) with optional user password and/or security code verification.
+  ; - Security protocol function for user account removal (for authenticated users) with optional user password and/or security code verification.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -468,7 +467,7 @@
   ; @usage
   ; (remove-user-account {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/user-account-removed :status 200 :session {}}
   ;
   ; @usage
   ; (defn my-route
@@ -568,12 +567,12 @@
 
 (defn send-security-code-authenticated
   ; @description
-  ; Security protocol function for security code sending via email / SMS (for authenticated users).
+  ; - Security protocol function for security code sending via email / SMS (for authenticated users).
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -592,7 +591,7 @@
   ; @usage
   ; (send-security-code-authenticated {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/security-code-sent :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -650,12 +649,12 @@
 
 (defn send-security-code-unauthenticated
   ; @description
-  ; Security protocol function for security code sending via email / SMS (for unauthenticated users).
+  ; - Security protocol function for security code sending via email / SMS (for unauthenticated users).
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -676,7 +675,7 @@
   ; @usage
   ; (send-security-code-unauthenticated {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/security-code-sent :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -742,13 +741,13 @@
 
 (defn update-user-contact
   ; @description
-  ; Security protocol function for user contact (email address / phone number) update (for authenticated users) with optional user password
-  ; and/or security code verification.
+  ; - Security protocol function for user contact (email address / phone number) update (for authenticated users) with optional user password
+  ;   and/or security code verification.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -776,7 +775,7 @@
   ; @usage
   ; (update-user-contact {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/user-contact-updated :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -873,13 +872,13 @@
 
 (defn update-user-data
   ; @description
-  ; Security protocol function for user data update (for authenticated users).
+  ; - Security protocol function for user data update (for authenticated users).
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For updating user contact data (email address / phone number), or username, or user password use (the) specific protocol functions for these actions!
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -899,7 +898,7 @@
   ; @usage
   ; (update-user-data {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/user-data-updated :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -962,12 +961,12 @@
 
 (defn update-user-password
   ; @description
-  ; Security protocol function for user account password update (for authenticated users) with optional user password and/or security code verification.
+  ; - Security protocol function for user account password update (for authenticated users) with optional user password and/or security code verification.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -994,7 +993,7 @@
   ; @usage
   ; (update-user-password {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/user-password-updated :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -1087,12 +1086,12 @@
 
 (defn update-username
   ; @description
-  ; Security protocol function for updating a username (for authenticated users) with optional password verification.
+  ; - Security protocol function for updating a username (for authenticated users) with optional password verification.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -1115,7 +1114,7 @@
   ; @usage
   ; (update-username {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/username-updated :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -1192,12 +1191,12 @@
 
 (defn verify-security-code-authenticated
   ; @description
-  ; Security protocol function for verifying a security code (for authenticated users) sent via email / SMS.
+  ; - Security protocol function for verifying a security code (for authenticated users) sent via email / SMS.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -1220,7 +1219,7 @@
   ; @usage
   ; (verify-security-code-authenticated {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/correct-security-code-received :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -1295,12 +1294,12 @@
 
 (defn verify-security-code-unauthenticated
   ; @description
-  ; Security protocol function for verifying a security code (for unauthenticated users) sent via email / SMS.
+  ; - Security protocol function for verifying a security code (for unauthenticated users) sent via email / SMS.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - In case the 'provide-user-session-f' function is passed, no security check has been failed, and the received security code is correct,
   ;   it applies the 'provide-user-session-f' function on the HTTP response.
   ;
@@ -1330,7 +1329,7 @@
   ; @usage
   ; (verify-security-code-unauthenticated {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/correct-security-code-received :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -1428,13 +1427,13 @@
 
 (defn verify-user-password
   ; @description
-  ; Security protocol function for user password verification (for unauthenticated users) and in case of correct user password has been
-  ; received optionally sending an MFA security code / providing a user session.
+  ; - Security protocol function for user password verification (for unauthenticated users) and in case of correct user password has been
+  ;   received optionally sending an MFA security code / providing a user session.
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ; - In case the 'send-security-code-f' function is passed, no security check has been failed, and the received user password is correct,
   ;   it applies the 'send-security-code-f' (it's a common scenario when the user credentials verification is followed by login code verification).
   ; - In case the 'provide-user-session-f' function is passed, the 'send-security-code-f' function is NOT passed, no security check has
@@ -1462,7 +1461,7 @@
   ; @usage
   ; (verify-user-password {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/security-code-sent :status 200}
   ;
   ; @usage
   ; (defn my-route
@@ -1547,12 +1546,12 @@
 
 (defn verify-user-pin-code
   ; @description
-  ; Security protocol function for user PIN code verification (for authenticated users).
+  ; - Security protocol function for user PIN code verification (for authenticated users).
+  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @note
   ; - For performing additional side effects use the 'additional-action-f' function (applied if no security check has been failed).
   ; - For implementing additional security levels use the 'additional-security-f' function (applied as last security check).
-  ; - Performs various security checks before returns a HTTP response that indicates if any check has been failed or the action was successful.
   ;
   ; @param (map) request
   ; @param (map) functions
@@ -1572,7 +1571,7 @@
   ; @usage
   ; (verify-user-pin-code {...} {...})
   ; =>
-  ; {:body :too-many-requests/user-rate-limit-exceeded :status 429}
+  ; {:body :performed-request/correct-user-pin-code-received :status 200}
   ;
   ; @usage
   ; (defn my-route
