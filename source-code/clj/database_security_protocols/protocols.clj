@@ -32,7 +32,7 @@
   ;
   ; @param (map) request
   ; @param (*)(opt) initial-data
-  ; The 'initial-data' passed through the data validating / manipulating functions (that are applied as a cascade).
+  ; The 'initial-data' is passed through the data validating / manipulating functions (that are applied as a cascade).
   ; Default: NIL
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
@@ -161,7 +161,7 @@
   ;
   ; @param (map) request
   ; @param (*)(opt) initial-data
-  ; The 'initial-data' passed through the data validating / manipulating functions (that are applied as a cascade).
+  ; The 'initial-data' is passed through the data validating / manipulating functions (that are applied as a cascade).
   ; Default: NIL
   ; @param (map) functions
   ; {:additional-action-f (function)(opt)          Must return TRUE in case of successful execution.
