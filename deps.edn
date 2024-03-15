@@ -1,5 +1,5 @@
 
 {:paths ["source-code/clj"]
- :deps  {bithandshake/cljc-fruits {:git/url "https://github.com/bithandshake/cljc-fruits"
+ :deps  {mt-utilities/cljc-fruits {:git/url "https://github.com/mt-utilities/cljc-fruits"
                                    :sha     "6b5c9c060bdff84d0cd0bce908b64b268e5e6f0e"}
          org.clojure/clojure      {:mvn/version "1.10.1"}}}
