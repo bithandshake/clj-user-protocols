@@ -554,8 +554,8 @@
              (and additional-security-f          (not (additional-security-f)))            {:body :unknown-error/additional-security-stage-failed        :status 520}
              (and additional-action-f            (not (additional-action-f)))              {:body :unknown-error/additional-action-stage-failed          :status 520}
              (and send-goodbye-message-f         (not (send-goodbye-message-f)))           {:body :server-error/unable-to-send-goodbye-message           :status 500}
-             ; After every provided security function has been passed, it removes the user account and removes the user session from the HTTP response (if the 'drop-user-session-f'
-             ; function is passed).
+             ; After every provided security function has been passed, it removes the user account and removes the user session from the HTTP response
+             ; (if the 'drop-user-session-f' function is passed).
              (not (remove-user-account-f)) {:body :server-error/unable-to-remove-user-account :status 500}
              (not drop-user-session-f)     {:body :performed-request/user-account-removed     :status 200}
              :dropping-user-session        (if-let [response (drop-user-session-f {:body :performed-request/ready-to-drop-user-session :status 200})]
