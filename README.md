@@ -16,13 +16,13 @@ They do not perform environmental checks or have any side effects on their own.
 ### deps.edn
 
 ```
-{:deps {mt-server-kit/clj-security-protocols {:git/url "https://github.com/mt-server-kit/clj-security-protocols"
-                                              :sha     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}}}
+{:deps {mt-security-kit/clj-security-protocols {:git/url "https://github.com/mt-security-kit/clj-security-protocols"
+                                                :sha     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}}}
 ```
 
 ### Current version
 
-Check out the latest commit on the [release branch](https://github.com/mt-server-kit/clj-security-protocols/tree/release).
+Check out the latest commit on the [release branch](https://github.com/mt-security-kit/clj-security-protocols/tree/release).
 
 ### Changelog
 
@@ -30,4 +30,4 @@ You can track the changes of the <strong>clj-security-protocols</strong> library
 
 # Documentation
 
-The <strong>clj-security-protocols</strong> functional documentation is [available here](https://mt-server-kit.github.io/clj-security-protocols).
+The <strong>clj-security-protocols</strong> functional documentation is [available here](https://mt-security-kit.github.io/clj-security-protocols).
