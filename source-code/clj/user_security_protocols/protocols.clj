@@ -345,7 +345,7 @@
   ;  :security-code-correct-f (function)(opt)        Must return TRUE if the received security code is correct.
   ;  :security-code-device-matches-f (function)(opt) Must return TRUE if the received security code has been required from the same device.
   ;  :security-code-expired-f (function)(opt)        Must return TRUE if the received security code has been expired.
-  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent.
+  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent recently.
   ;  :security-code-valid-f (function)(opt)          Must return TRUE if the received security code is valid.
   ;  :user-agent-blacklist-f (function)(opt)         Must return TRUE if the user agent is blacklisted.
   ;  :user-agent-valid-f (function)(opt)             Must return TRUE if the user agent is valid.
@@ -487,7 +487,7 @@
   ;  :security-code-correct-f (function)(opt)         Must return TRUE if the received security code is correct.
   ;  :security-code-device-matches-f (function)(opt)  Must return TRUE if the received security code has been required from the same device.
   ;  :security-code-expired-f (function)(opt)         Must return TRUE if the received security code has been expired.
-  ;  :security-code-sent-f (function)(opt)            Must return TRUE if a security code has been sent.
+  ;  :security-code-sent-f (function)(opt)            Must return TRUE if a security code has been sent recently.
   ;  :security-code-valid-f (function)(opt)           Must return TRUE if the received security code is valid.
   ;  :send-goodbye-message-f (function)(opt)          Optional side-effect function for sending a goodbye message to the user. Applied when every security check has been passed. Must return TRUE if the goodbye email / SMS has been successfully sent.
   ;  :user-agent-blacklist-f (function)(opt)          Must return TRUE if the user agent is blacklisted.
@@ -820,7 +820,7 @@
   ;  :security-code-correct-f (function)(opt)        Must return TRUE if the received security code is correct.
   ;  :security-code-device-matches-f (function)(opt) Must return TRUE if the received security code has been required from the same device.
   ;  :security-code-expired-f (function)(opt)        Must return TRUE if the received security code has been expired.
-  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent.
+  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent recently.
   ;  :security-code-valid-f (function)(opt)          Must return TRUE if the received security code is valid.
   ;  :update-user-contact-f (function)               Side-effect function for updating the user contact. Applied when every security check has been passed. Must return TRUE if the user contact (email address / phone number) has been successfully updated.
   ;  :user-agent-blacklist-f (function)(opt)         Must return TRUE if the user agent is blacklisted.
@@ -1058,7 +1058,7 @@
   ;  :security-code-correct-f (function)(opt)        Must return TRUE if the received security code is correct.
   ;  :security-code-device-matches-f (function)(opt) Must return TRUE if the received security code has been required from the same device.
   ;  :security-code-expired-f (function)(opt)        Must return TRUE if the received security code has been expired.
-  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent.
+  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent recently.
   ;  :security-code-valid-f (function)(opt)          Must return TRUE if the received security code is valid.
   ;  :update-user-password-f (function)              Side-effect function for updating the user's password. Applied when every security check has been passed. Must return TRUE if the user's password has been successfully updated.
   ;  :user-agent-blacklist-f (function)(opt)         Must return TRUE if the user agent is blacklisted.
@@ -1305,7 +1305,7 @@
   ;  :security-code-correct-f (function)             Must return TRUE if the received security code is correct.
   ;  :security-code-device-matches-f (function)(opt) Must return TRUE if the received security code has been required from the same device.
   ;  :security-code-expired-f (function)(opt)        Must return TRUE if the received security code has been expired.
-  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent.
+  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent recently.
   ;  :security-code-valid-f (function)(opt)          Must return TRUE if the received security code is valid.
   ;  :user-agent-blacklist-f (function)(opt)         Must return TRUE if the user agent is blacklisted.
   ;  :user-agent-valid-f (function)(opt)             Must return TRUE if the user agent is valid.
@@ -1420,7 +1420,7 @@
   ;  :security-code-correct-f (function)             Must return TRUE if the received security code is correct.
   ;  :security-code-device-matches-f (function)(opt) Must return TRUE if the received security code has been required from the same device.
   ;  :security-code-expired-f (function)(opt)        Must return TRUE if the received security code has been expired.
-  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent.
+  ;  :security-code-sent-f (function)(opt)           Must return TRUE if a security code has been sent recently.
   ;  :security-code-valid-f (function)(opt)          Must return TRUE if the received security code is valid.
   ;  :user-agent-blacklist-f (function)(opt)         Must return TRUE if the user agent is blacklisted.
   ;  :user-agent-valid-f (function)(opt)             Must return TRUE if the user agent is valid.
