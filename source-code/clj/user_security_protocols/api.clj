@@ -4,7 +4,7 @@
 
 ;; ----------------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
-
+ 
 ; @redirect (user-security-protocols.protocols/*)
 (def check-user-identifier                protocols/check-user-identifier)
 (def create-user-account                  protocols/create-user-account)
